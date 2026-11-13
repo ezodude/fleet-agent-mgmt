@@ -169,8 +169,8 @@ assert sorted(cmds) == [("SessionStart", repo + "/shared/hooks/postcompact-boot.
 assert "_comment" not in s
 PY
   n="$(find "$ch/skills" -type l | wc -l | tr -d ' ')"
-  [ "$n" = "13" ] && [ "$(readlink "$ch/skills/grilling")" = "$REPO/shared/skills/grilling" ] && [ ! -e "$ch/skills/foundations" ] \
-    && ok install_13_skill_links || bad install_13_skill_links "n=$n"
+  [ "$n" = "14" ] && [ "$(readlink "$ch/skills/grilling")" = "$REPO/shared/skills/grilling" ] && [ ! -e "$ch/skills/foundations" ] \
+    && ok install_14_skill_links || bad install_14_skill_links "n=$n"
   [ "$(python3 -c 'import os,sys;print(oct(os.stat(sys.argv[1]).st_mode & 0o777))' "$ch/settings.json")" = "0o600" ] \
     && ok install_fresh_file_mode_600 || bad install_fresh_file_mode_600 "not 600"
   ls "$ch"/settings.json.pre-install-* >/dev/null 2>&1 && bad install_no_backup_when_no_file "backup made" || ok install_no_backup_when_no_file
