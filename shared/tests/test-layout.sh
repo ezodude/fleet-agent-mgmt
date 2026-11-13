@@ -45,11 +45,15 @@ for n in $NAMES; do args+=(-e "shared/$n"); done
 hits="$(git -C "$REPO" grep -nF "${args[@]}" -- . ':!Leads' ':!TechLeads' ':!lead-ux' ':!archive' ':!shared/docs/specs' ':!CHANGELOG.md' ':!shared/tests/test-layout.sh' 2>/dev/null)"
 if [ -z "$hits" ]; then ok no_stale_ref; else bad no_stale_ref "$(echo "$hits" | head -5 | tr '\n' '|')"; fi
 
-# board_list: fleet-board.sh list prints the fixture board's section names
+# board_list: fleet-board.sh list prints YOURS by default; the log view (l, board-state/logview) lists the template's sections and their rows
 d="$(mktemp -d)"; trap 'rm -rf "$d"' EXIT
 mkdir -p "$d/checks/lead-1"; cp "$HERE/testdata/board.md" "$d/checks/lead-1/board.md"
 out="$(FLEET_HOME="$d" bash "$REPO/shared/board/fleet-board.sh" list 2>&1)"
-if echo "$out" | grep -q YOURS && echo "$out" | grep -q RUNNING && echo "$out" | grep -q 'orbit notes'; then ok board_list; else bad board_list "$out"; fi
+if echo "$out" | grep -q YOURS && ! echo "$out" | grep -q 'No such file'; then ok board_list_default; else bad board_list_default "$out"; fi
+mkdir -p "$d/board-state"; touch "$d/board-state/logview"
+out="$(FLEET_HOME="$d" bash "$REPO/shared/board/fleet-board.sh" list 2>&1)"
+if echo "$out" | grep -q YOURS && echo "$out" | grep -q RUNNING && echo "$out" | grep -q OWED && echo "$out" | grep -q ORB-7; then ok board_list; else bad board_list "$out"; fi
+rm -f "$d/board-state/logview"
 
 # board_url_of: links come only from FLEET_HOME/board-links.tsv; empty when the file or key is absent
 urlof() { FLEET_HOME="$d" bash -c 'eval "$(sed -n "/^url_of()/p" "$1")"; url_of "$2"' _ "$REPO/shared/board/fleet-board.sh" "$1"; }
