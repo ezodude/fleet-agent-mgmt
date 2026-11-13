@@ -1,7 +1,28 @@
 # Changelog
 
-AgentMgmt changes, newest first, one line per change, its commits in brackets.
+fleet-agent-mgmt changes, newest first, one line per change, its commits in brackets.
+The commits in brackets are from the private history this repo was cut from; they are not in this repo.
 Left out: ledger entries, lead-1 state-block commits, per-ticket design, spec and handoff records, session handoffs, test-only commits and merges. A day with only those has no heading.
+
+## 2026-11-12
+
+- Changed the code and the data to live apart: the clone is `FLEET_REPO`, the roster, records, checks and lead folders live in `FLEET_HOME` (default `~/.fleet-agent-mgmt`), and every hook and script finds both through `shared/lib/paths.sh` or `paths.py` (fff4cb4, 43b894c, cbaaec8, f014c1c)
+- Changed `shared/` to be grouped by purpose: hooks, launch, records, ledger, board, fleet, lib, skills, tests and docs (0ad84bf)
+- Added `install.sh`, which writes the hooks and the `FLEET_REPO` and `FLEET_HOME` env into `~/.claude/settings.json` with a backup and links the skills to the clone; `--repo <path>` points them back (069eceb, ed47509, 1b15fa6)
+- Added the board viewer in `shared/board`, which lists the sections of lead-1's board page from `FLEET_HOME` (405de55, 97c253c)
+- Added `agent-up.sh --resume-id`, which relaunches a session by its id from its roster row (76405f3)
+- Added a clean-clone test that launches from a fresh clone under a separate home and scans it for user tokens, and `sealed-run.sh`, which runs every test from another folder with the user's own folders denied (5ae6974, da35fce, 2a07f79)
+- Changed the skills, docs and test fixtures to name roles and `FLEET_REPO`/`FLEET_HOME`, never a user, path or ticket (59ac473, 9439a8d, 71845ad)
+
+## 2026-11-10
+
+- Added the shaping session: a launcher, its settings and a map that shapes a new idea into a brief; brief-grilling, sweeping-precedents and writing-a-ticket take a shaped brief (dd67e77)
+- Changed the shaping session to open with a message for the owner instead of reading its rules back, and to ask one map item per message (45d8fc3, 445ed49)
+- Fixed `shape-up --done` keeping a stopped session's files; it deletes them whenever the session is not running and lists what it deleted (fbc3fea)
+
+## 2026-11-09
+
+- Added a chat gate on lead stops: a turn the machine started ends with one plain line (5c8e975)
 
 ## 2026-10-28
 
