@@ -11,7 +11,8 @@
 #   - $FLEET_HOME/migrate/install-stamp (UTC time), written only when settings.json changes
 #     (or the stamp is missing): an idempotent re-run leaves it alone.
 # Links each shared/skills/<name> that holds a SKILL.md into <claude-home>/skills/<name>;
-# a real (non-link) folder at that name is skipped, never deleted.
+# a real (non-link) folder at that name is skipped, never deleted; a link into another clone's shared/skills/<name>
+# for a skill this repo does not carry is removed.
 # Prints one line per change; a run that changes nothing prints no "changed" line.
 # The old settings file is copied to settings.json.pre-install-<stamp> before a rewrite.
 set -eu
@@ -124,4 +125,14 @@ for d in "$REPO"/shared/skills/*/; do
   else
     ln -s "$target" "$link"; echo "changed: skill $name linked to $target"
   fi
+done
+# A fleet skill link (<repo>/shared/skills/<name>) into another clone, for a skill this repo does not carry,
+# is removed, so a rollback leaves no link into the other clone. Other links and real folders are left alone.
+for link in "$CH"/skills/*; do
+  [ -L "$link" ] || continue
+  name="$(basename "$link")"; t="$(readlink "$link")"
+  case "$t" in */shared/skills/"$name") ;; *) continue ;; esac
+  [ "$t" = "$REPO/shared/skills/$name" ] && continue
+  [ -f "$REPO/shared/skills/$name/SKILL.md" ] && continue
+  rm "$link"; echo "changed: skill $name unlinked (it linked to $t; not in $REPO)"
 done
