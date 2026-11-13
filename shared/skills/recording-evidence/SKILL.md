@@ -1,6 +1,6 @@
 ---
 name: recording-evidence
-description: Use when a fleet IC (AgentMgmt Lead and ICs) runs anything whose result a report, a decision record entry, a TESTS row or a close report will rest on: a test command, a gate, a probe, a read-back, a count. The entry is written from the output, at the time of the run. IC-facing; the haiku check and lead-1 read it.
+description: "Use when a fleet IC (AgentMgmt Lead and ICs) runs anything whose result a report, a decision record entry, a TESTS row or a close report will rest on: a test command, a gate, a probe, a read-back, a count. The entry is written from the output, at the time of the run. IC-facing; the haiku check and lead-1 read it."
 ---
 
 # Recording evidence

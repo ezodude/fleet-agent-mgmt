@@ -70,5 +70,13 @@ if [ "$(keyof 'orbit #12 waits')" = "#12" ]; then ok board_lane_absent; else bad
 cp "$HERE/testdata/lane-prefixes.txt" "$d/lane-prefixes.txt"
 if [ "$(keyof 'orbit #12 waits')" = "orbit #12" ]; then ok board_lane_present; else bad board_lane_present "$(keyof 'orbit #12 waits')"; fi
 
+# skill_frontmatter_yaml: a plain (unquoted) frontmatter value holding ": " is not valid YAML; GitHub fails to render it
+hits=""
+for f in "$REPO"/shared/skills/*/SKILL.md; do
+  h="$(awk 'NR==1 && $0!="---"{exit} NR>1 && $0=="---"{exit} NR>1 && /^[A-Za-z_-]+: / { v=$0; sub(/^[A-Za-z_-]+: /,"",v); if (v !~ /^["'"'"'|>]/ && index(v,": ")) print FILENAME":"NR }' "$f")"
+  [ -n "$h" ] && hits="$hits ${h#$REPO/}"
+done
+if [ -z "$hits" ]; then ok skill_frontmatter_yaml; else bad skill_frontmatter_yaml "$hits"; fi
+
 echo "$pass pass, $fail fail"
 [ "$fail" -eq 0 ]
