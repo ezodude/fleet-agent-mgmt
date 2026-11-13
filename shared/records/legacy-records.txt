@@ -1,0 +1,5 @@
+# Record folders frozen before the strict spec shape, one per line as <project>/<rung folder>.
+# Checks that would refuse a record folder for lacking files or rows the strict shape writes skip
+# the folders listed here, so a rung already running keeps working until it closes.
+# lead-1 alone edits this file: adding a folder turns those checks off for that rung.
+# Ships with no rows: a fleet lists its own in legacy-records.txt in its FLEET_HOME.

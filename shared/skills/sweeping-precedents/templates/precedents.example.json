@@ -1,0 +1,85 @@
+{
+  "project": "atlas",
+  "rows_read": 14,
+  "records": [
+    "atl-40-r1",
+    "atl-41-r1",
+    "atl-43-r1"
+  ],
+  "rows": [
+    {
+      "id": "P1",
+      "rule": "A wait inside the nightly job reschedules it; it never sleeps on the shared scheduler thread.",
+      "sources": [
+        "atl-40-r1 · LEARNED · row 1",
+        "atl-41-r1 · LEARNED · row 2"
+      ],
+      "fits": "constraint",
+      "why": "the partial-file retry runs in the same nightly job",
+      "status": "live"
+    },
+    {
+      "id": "P2",
+      "rule": "An alert names the file and fires once per file, never once per attempt.",
+      "sources": [
+        "atl-41-r1 · CHANGED · row 1"
+      ],
+      "owner_quote": "one alert per file, ops mutes anything chattier",
+      "fits": "gate pass line",
+      "why": "a partial file that fails three times must show one alert in the dry run",
+      "status": "live"
+    },
+    {
+      "id": "P3",
+      "rule": "The vendor's partial-file format is unconfirmed.",
+      "sources": [
+        "atl-40-r1 · OWED · row 1"
+      ],
+      "fits": "open",
+      "why": "the rung cannot design the parser until the vendor answers",
+      "status": "stale-after the vendor's format reply"
+    }
+  ],
+  "not_carried": [
+    {
+      "reference": "atl-40-r1 · CHANGED · row 1",
+      "reason": "the push, PR and ready acts of a closed rung; nothing for this one"
+    },
+    {
+      "reference": "atl-40-r1 · CHANGED · row 2",
+      "reason": "the push, PR and ready acts of a closed rung; nothing for this one"
+    },
+    {
+      "reference": "atl-40-r1 · CHANGED · row 3",
+      "reason": "the push, PR and ready acts of a closed rung; nothing for this one"
+    },
+    {
+      "reference": "atl-40-r1 · CHANGED · row 4",
+      "reason": "the push, PR and ready acts of a closed rung; nothing for this one"
+    },
+    {
+      "reference": "atl-40-r1 · CHANGED · row 5",
+      "reason": "the push, PR and ready acts of a closed rung; nothing for this one"
+    },
+    {
+      "reference": "atl-40-r1 · CHANGED · row 6",
+      "reason": "the push, PR and ready acts of a closed rung; nothing for this one"
+    },
+    {
+      "reference": "atl-40-r1 · LEARNED · row 2",
+      "reason": "superseded by atl-41-r1 · CHANGED · row 1 (alerts are per file now)"
+    },
+    {
+      "reference": "atl-40-r1 · OWED · row 2",
+      "reason": "the ops dashboard tile: not in this rung, owner to decide"
+    },
+    {
+      "reference": "atl-41-r1 · LEARNED · row 1",
+      "reason": "went well: the dry run caught a missing file name; nothing to change"
+    },
+    {
+      "reference": "atl-43-r1 · CHANGED · row 1",
+      "reason": "research ruling on vendor formats, already P3's open line"
+    }
+  ]
+}

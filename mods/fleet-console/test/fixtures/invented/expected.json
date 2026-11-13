@@ -1,0 +1,116 @@
+{
+  "fixture": "invented",
+  "rules": {
+    "rows": "one per name with sessions/<pid>.json AND states/<name>.STATE.md; lead-1 has no STATE.md so no IC row",
+    "order": "IC rows in name order, never session file order, so an IC keeps its letter when it restarts under a new pid; then lead-1 workflows by start time",
+    "parse": "key: value at line start, in or out of a fence; key = text before the first ': '; last occurrence wins; missing = '-'",
+    "cut": "none: rung and needs_you are the STATE.md values in full; the pane cuts a row line at its own width",
+    "status": "session file status field",
+    "updated_at": "parsed from 'YYYY-MM-DD HH:MM BST' at the start of updated:; null when no time is given",
+    "newest_file": "the newest file beside STATE.md other than STATE.md and dotfiles; '-' when there is none"
+  },
+  "lead_1": {
+    "session_file": "sessions/40001.json",
+    "sessionId": "11111111-2222-4333-8444-555555555555",
+    "cwd": "/Users/owner/fleet/lead-1",
+    "pane": "%38",
+    "status": "busy"
+  },
+  "ic_rows": [
+    {
+      "letter": "a",
+      "name": "apex-ic-1",
+      "state_shape": "fenced ```state block",
+      "session_file": "sessions/41001.json",
+      "pane": "%9",
+      "rung": "APX-3 r1, research: which of the three help-page layouts reads best on a phone, with a short write-up",
+      "status": "idle",
+      "needs_you": "lead-1 and the PO: answers to APX-3 questions Q2 to Q6 (step 2 cannot start without Q3 and Q5)",
+      "updated": "2026-09-15 09:42 BST (08:42Z)",
+      "updated_at": "2026-09-15T09:42:00+01:00",
+      "card": {
+        "stop": "STOP 1 reached 2026-09-15 09:42 BST; write-up committed; report sent to lead-1",
+        "awaiting": "lead-1 and the PO: answers to APX-3 questions Q2 to Q6 (step 2 cannot start without Q3 and Q5)",
+        "next": "hold at STOP 1; once the answers are in, step 2 is a plan for the phone layout only, with no code",
+        "updated": "2026-09-15 09:42 BST (08:42Z)",
+        "newest_file": "-"
+      }
+    },
+    {
+      "letter": "b",
+      "name": "atlas-ic-1",
+      "state_shape": "fenced ```state block",
+      "session_file": "sessions/42001.json",
+      "pane": "%39",
+      "rung": "ATL-42 r1, retry the nightly price import when the vendor times out, and show the retry count on the run page",
+      "status": "busy",
+      "needs_you": "ATL-42 D4 (sent to lead-1 at 14:57): which retry limit to ship / a three tries, then fail the run / b five tries, then fail the run",
+      "updated": "2026-10-21 15:46 BST",
+      "updated_at": "2026-10-21T15:46:00+01:00",
+      "card": {
+        "stop": "STOP 2 ready for push sent 15:11 (/Users/owner/.fleet-agent-mgmt/checks/atlas-ic-1/stop-2.md)",
+        "awaiting": "ATL-42 D4 (sent to lead-1 at 14:57): which retry limit to ship / a three tries, then fail the run / b five tries, then fail the run",
+        "next": "wait for the owner's word to mark PR #86 ready; never merge",
+        "updated": "2026-10-21 15:46 BST",
+        "newest_file": "/Users/owner/.fleet-agent-mgmt/checks/atlas-ic-1/stop-2.md"
+      }
+    },
+    {
+      "letter": "c",
+      "name": "atlas-ic-2",
+      "state_shape": "bare key: value lines",
+      "session_file": "sessions/42002.json",
+      "pane": "%40",
+      "rung": "ATL-43 r1, a weekly email that lists the imports that failed, sent to the data team on Monday mornings",
+      "status": "idle",
+      "needs_you": "The owner's word in this pane to mark PR #85 ready. lead-1 review written 14:47: DR1-3 ok, gate 8 of 8, tests 1-3 shown (E12, E14, E15), nothing to rework",
+      "updated": "2026-10-21 14:46 BST",
+      "updated_at": "2026-10-21T14:46:00+01:00",
+      "card": {
+        "stop": "STOP 2 sent 14:41; branch pushed, draft PR #85 open (DR3)",
+        "awaiting": "The owner's word in this pane to mark PR #85 ready. lead-1 review written 14:47: DR1-3 ok, gate 8 of 8, tests 1-3 shown (E12, E14, E15), nothing to rework",
+        "next": "review first; fix its findings; ready only on the owner's word; never merge",
+        "updated": "2026-10-21 14:46 BST",
+        "newest_file": "/Users/owner/.fleet-agent-mgmt/checks/atlas-ic-2/stop-2.md"
+      }
+    },
+    {
+      "letter": "d",
+      "name": "orbit-ic-1",
+      "state_shape": "fenced ```state block",
+      "session_file": "sessions/43001.json",
+      "pane": "%36",
+      "rung": "ORB-7 r2, research: which columns the weekly survey export keeps, then a draft schema for the export and a sample file",
+      "status": "idle",
+      "needs_you": "Three questions for the owner, sent to lead-1 at 14:15 BST. Q1: keep the two date columns or merge them into one (the draft schema /Users/owner/.orbit/drafts/week-43/export-columns.schema.json, has both; merging saves a column but loses the time zone). Q2: whether the free-text answers go in the export at all; they hold names in about 1 row in 20 (E14), so they would need a pass that removes names first. Q3: who reads the export first, the data team or the survey owners, since that sets the column order. Meanwhile: the sample file is checked against the draft schema (0 errors, E15) and a second sample with every field empty passes too (E16). Nothing is shared outside the record folder until the owner says so in this pane. Once the answers are in: one pass over the column list, the sample built again, then STOP 2 (about 30 minutes of work). (Earlier asks, for the record: the column order to orbit-ic-2; a name check on the sample by lead-1; then the owner's check",
+      "updated": "2026-10-21 16:33 BST",
+      "updated_at": "2026-10-21T16:33:00+01:00",
+      "card": {
+        "stop": "STOP 1 sent again 2026-10-20 17:38 after the owner's check (17:37, sample row 4 had an empty date, E6) and the fix (E8); report /Users/owner/.fleet-agent-mgmt/checks/orbit-ic-1/stop-1.md sent to lead-1 in this pane",
+        "awaiting": "Three questions for the owner, sent to lead-1 at 14:15 BST. Q1: keep the two date columns or merge them into one (the draft schema /Users/owner/.orbit/drafts/week-43/export-columns.schema.json, has both; merging saves a column but loses the time zone). Q2: whether the free-text answers go in the export at all; they hold names in about 1 row in 20 (E14), so they would need a pass that removes names first. Q3: who reads the export first, the data team or the survey owners, since that sets the column order. Meanwhile: the sample file is checked against the draft schema (0 errors, E15) and a second sample with every field empty passes too (E16). Nothing is shared outside the record folder until the owner says so in this pane. Once the answers are in: one pass over the column list, the sample built again, then STOP 2 (about 30 minutes of work). (Earlier asks, for the record: the column order to orbit-ic-2; a name check on the sample by lead-1; then the owner's check",
+        "next": "on \"ORB-7 r2 sample ok\" from the owner: write the column list into the analysis, score the three export options against it, then STOP 2; carry the \"empty dates\" finding into the analysis",
+        "updated": "2026-10-21 16:33 BST",
+        "newest_file": "/Users/owner/.fleet-agent-mgmt/checks/orbit-ic-1/stop-1.md"
+      }
+    },
+    {
+      "letter": "e",
+      "name": "orbit-ic-2",
+      "state_shape": "fenced ```state block",
+      "session_file": "sessions/43002.json",
+      "pane": "%35",
+      "rung": "ORB-8 r1, a printable summary page for each finished survey (one PDF per survey, kept for a year)",
+      "status": "idle",
+      "needs_you": "PO and owner: a word on N4 here; a second test account to check the guest view; the display names for the page header",
+      "updated": "2026-10-21 BST",
+      "updated_at": null,
+      "card": {
+        "stop": "test page v4 built at 6f7a8b9 (footer shows the survey date); the footer card sent; waiting for the owner",
+        "awaiting": "PO and owner: a word on N4 here; a second test account to check the guest view; the display names for the page header",
+        "next": "on the owner's reply: build the page for the three test surveys, check each PDF opens and prints on one page, run the gate with ORBIT_SURVEYS set; STOP 2",
+        "updated": "2026-10-21 BST",
+        "newest_file": "/Users/owner/.fleet-agent-mgmt/checks/orbit-ic-2/from-lead-1-column-order.md"
+      }
+    }
+  ]
+}

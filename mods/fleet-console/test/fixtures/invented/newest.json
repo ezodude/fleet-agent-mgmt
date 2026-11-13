@@ -1,0 +1,25 @@
+{
+  "note": "invented: each IC's checks folder as the mod lists it (names and mtimes, local BST): STATE.md, and the other top-level files",
+  "dirs": {
+    "apex-ic-1": { "state_mtime": "2026-09-15T09:42:41+01:00", "others": [] },
+    "atlas-ic-1": {
+      "state_mtime": "2026-10-21T16:32:26+01:00",
+      "others": [
+        { "name": "stop-1.md", "mtime": "2026-10-21T14:20:10+01:00" },
+        { "name": "stop-2.md", "mtime": "2026-10-21T15:05:40+01:00" }
+      ]
+    },
+    "atlas-ic-2": {
+      "state_mtime": "2026-10-21T15:48:37+01:00",
+      "others": [{ "name": "stop-2.md", "mtime": "2026-10-21T14:42:22+01:00" }]
+    },
+    "orbit-ic-1": {
+      "state_mtime": "2026-10-21T16:33:04+01:00",
+      "others": [{ "name": "stop-1.md", "mtime": "2026-10-21T14:22:33+01:00" }]
+    },
+    "orbit-ic-2": {
+      "state_mtime": "2026-10-21T16:47:21+01:00",
+      "others": [{ "name": "from-lead-1-column-order.md", "mtime": "2026-10-21T11:34:26+01:00" }]
+    }
+  }
+}

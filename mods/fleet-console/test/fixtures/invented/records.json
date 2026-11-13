@@ -1,0 +1,9 @@
+{
+  "note": "invented record folders named by the fixture STATE.md handoff lines: file names and mtimes only (handoff.md, close.md); a folder with no files is served as an empty folder",
+  "folders": {
+    "atlas/atl-42-r1": { "close.md": "2026-10-22T10:36:03+01:00", "handoff.md": "2026-10-21T12:14:18+01:00" },
+    "atlas/atl-43-r1": { "close.md": "2026-10-22T10:58:07+01:00", "handoff.md": "2026-10-21T12:15:07+01:00" },
+    "orbit/orb-7-r2": { "handoff.md": "2026-10-20T15:28:17+01:00" },
+    "orbit/orb-8-r1": { "handoff.md": "2026-10-16T15:33:38+01:00" }
+  }
+}

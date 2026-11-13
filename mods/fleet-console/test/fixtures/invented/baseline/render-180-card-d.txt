@@ -1,0 +1,91 @@
+# fleet-console board, test-kit tree laid out as text (an approximation, not the engine's paint)
+# body columns 180, state card-d, input: invented fixtures, clock 2026-10-21 16:55 BST + 3 s
+# 40 lines, 0 wider than the body; the | marks the body's right edge
++------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+|FLEET · read-only · /fleet opens it                                                                                                                         16:55 · refreshed 3s ago|
+|a–f open a card · 0 closes the card · Esc back to your prompt · other keys go to your prompt · ctrl+x x closes the board                                                            |
+|                                                                                                                                                                                    |
+|5 IC (1 busy) · 0 wait on you · 1 workflow running                                                                                                                                  |
+| ? a: apex-ic-1 · APX-3 r1, research: which of the three help-page layouts reads best on a phone, with a short write-up · idle                                                      |
+| ✔ b: atlas-ic-1 · ATL-42 r1, retry the nightly price import when the vendor times out, and show the retry count on the run page · busy                                             |
+| ✔ c: atlas-ic-2 · ATL-43 r1, a weekly email that lists the imports that failed, sent to the data team on Monday mornings · idle                                                    |
+|▌● d: orbit-ic-1 · ORB-7 r2, research: which columns the weekly survey export keeps, then a draft schema for the export and a sample file · idle                                    |
+| ● e: orbit-ic-2 · ORB-8 r1, a printable summary page for each finished survey (one PDF per survey, kept for a year) · idle                                                         |
+| f: workflow board-check-v0 · 0 of 2 agents returned · started 16:54 · running                                                                                                      |
+|                                                                                                                                                                                    |
+|┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐|
+|│ d · orbit-ic-1                                                                                                                                                     0: close card │|
+|│ ● NOT DONE · orb-7-r2 open · no close report yet                                                                                                                                 │|
+|│ updated 2026-10-21 16:33 BST · 22m ago                                                                                                                                           │|
+|│                                                                                                                                                                                  │|
+|│ stop                                                                                                                                                                             │|
+|│   · STOP 1 sent again 2026-10-20 17:38 after the owner's check (17:37, sample row 4 had an empty date, E6) and the fix (E8);                                                     │|
+|│   · report /Users/owner/.fleet-agent-mgmt/checks/orbit-ic-1/stop-1.md sent to lead-1 in this pane                                                                                │|
+|│                                                                                                                                                                                  │|
+|│ next                                                                                                                                                                             │|
+|│   · on "ORB-7 r2 sample ok" from the owner: write the column list into the analysis, score the three export options against it, then STOP 2;                                     │|
+|│   · carry the "empty dates" finding into the analysis                                                                                                                            │|
+|│                                                                                                                                                                                  │|
+|│ newest file                                                                                                                                                                      │|
+|│   /Users/owner/.fleet-agent-mgmt/checks/orbit-ic-1/                                                                                                                              │|
+|│   stop-1.md                                                                                                                                                                      │|
+|│                                                                                                                                                                                  │|
+|│ awaiting                                                                                                                                                                         │|
+|│   · Three questions for the owner, sent to lead-1 at 14:15 BST.                                                                                                                  │|
+|│   · Q1: keep the two date columns or merge them into one (the draft schema /Users/owner/.orbit/drafts/week-43/export-columns.schema.json, has both; merging saves a column but   │|
+|│     loses the time zone).                                                                                                                                                        │|
+|│   · Q2: whether the free-text answers go in the export at all;                                                                                                                   │|
+|│   · they hold names in about 1 row in 20 (E14), so they would need a pass that removes names first.                                                                              │|
+|│   · Q3: who reads the export first, the data team or the survey owners, since that sets the column order.                                                                        │|
+|│   · Meanwhile: the sample file is checked against the draft schema (0 errors, E15) and a second sample with every field empty passes too (E16).                                  │|
+|│   · Nothing is shared outside the record folder until the owner says so in this pane.                                                                                            │|
+|│   · Once the answers are in: one pass over the column list, the sample built again, then STOP 2 (about 30 minutes of work).                                                      │|
+|│   · (Earlier asks, for the record: the column order to orbit-ic-2; a name check on the sample by lead-1; then the owner's check                                                  │|
+|└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘|
++------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+# styles (colour keys: warning = amber, suggestion = blue, success = green)
+bold: FLEET
+dim:  · read-only · /fleet opens it
+dim: 16:55 · refreshed 3s ago
+dim: a–f open a card · 0 closes the card · Esc back to your prompt · other keys go to your prompt · ctrl+x x close…
+color=warning: ?
+bold: apex-ic-1
+dim: idle
+color=success: ✔
+bold: atlas-ic-1
+color=suggestion: busy
+color=success: ✔
+bold: atlas-ic-2
+dim: idle
+bg=#262E3A: <Box key=row-d>
+color=warning: ▌
+color=suggestion: ●
+bold: orbit-ic-1
+dim: idle
+color=suggestion: ●
+bold: orbit-ic-2
+dim: idle
+bold: workflow board-check-v0
+color=suggestion: running
+border=warning: <Box key=card>
+color=warning,bold: d · orbit-ic-1
+color=suggestion: ● NOT DONE · orb-7-r2 open · no close report yet
+dim: updated 2026-10-21 16:33 BST · 22m ago
+dim,bold: stop
+dim: ·
+dim: ·
+dim,bold: next
+dim: ·
+dim: ·
+dim,bold: newest file
+dim,bold: awaiting
+dim: ·
+dim: ·
+dim: ·
+dim: ·
+dim: ·
+dim: ·
+dim: ·
+dim: ·
+dim: ·

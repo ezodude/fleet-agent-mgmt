@@ -1,0 +1,9 @@
+{
+  "_comment": "Settings for a shaping session, on the launch line as --settings (shape-up.sh). Model and effort as lead-settings.json; no hooks: a shaping session is not a roster row, and lead-1 runs the brief checks when it takes the brief.",
+  "model": "claude-opus-5-5",
+  "effortLevel": "high",
+  "bashEditDiffEnabled": false,
+  "env": {
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "claude-haiku-5-5"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "fleet-console",
+  "version": "0.1.0",
+  "description": "A read-only pane (/fleet) showing what each fleet IC and lead-1 workflow is doing and what it needs from the owner",
+  "types": "./types/index.d.ts"
+}

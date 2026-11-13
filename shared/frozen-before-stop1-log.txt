@@ -1,0 +1,6 @@
+# Record folders frozen before stop1.log existed, one per line as <project>/<rung folder>.
+# The checks tied to the STOP 1 commit skip them: the approved sha against stop1.log, the chain of
+# rules.md and gate.md back to the spec at that commit, screen one at that commit, the dated
+# `## Amendments`, and the decision-record check's read of the spec in the worktree. Every other
+# frozen check still runs (the hashes, the receipt, the spec rows against rules.md and gate.md).
+# lead-1 alone edits this file; a folder comes off it when its rung closes.

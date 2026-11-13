@@ -1,0 +1,78 @@
+# fleet-console board, test-kit tree laid out as text (an approximation, not the engine's paint)
+# body columns 180, state card-c, input: invented fixtures, clock 2026-10-21 16:55 BST + 3 s
+# 33 lines, 0 wider than the body; the | marks the body's right edge
++------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+|FLEET · read-only · /fleet opens it                                                                                                                         16:55 · refreshed 3s ago|
+|a–f open a card · 0 closes the card · Esc back to your prompt · other keys go to your prompt · ctrl+x x closes the board                                                            |
+|                                                                                                                                                                                    |
+|5 IC (1 busy) · 0 wait on you · 1 workflow running                                                                                                                                  |
+| ? a: apex-ic-1 · APX-3 r1, research: which of the three help-page layouts reads best on a phone, with a short write-up · idle                                                      |
+| ✔ b: atlas-ic-1 · ATL-42 r1, retry the nightly price import when the vendor times out, and show the retry count on the run page · busy                                             |
+|▌✔ c: atlas-ic-2 · ATL-43 r1, a weekly email that lists the imports that failed, sent to the data team on Monday mornings · idle                                                    |
+| ● d: orbit-ic-1 · ORB-7 r2, research: which columns the weekly survey export keeps, then a draft schema for the export and a sample file · idle                                    |
+| ● e: orbit-ic-2 · ORB-8 r1, a printable summary page for each finished survey (one PDF per survey, kept for a year) · idle                                                         |
+| f: workflow board-check-v0 · 0 of 2 agents returned · started 16:54 · running                                                                                                      |
+|                                                                                                                                                                                    |
+|┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐|
+|│ c · atlas-ic-2                                                                                                                                                     0: close card │|
+|│ ✔ DONE · atl-43-r1 closed 2026-10-22 10:58 · close report in the record                                                                                                          │|
+|│ updated 2026-10-21 14:46 BST · 2h09 ago                                                                                                                                          │|
+|│                                                                                                                                                                                  │|
+|│ stop                                                                                                                                                                             │|
+|│   · STOP 2 sent 14:41;                                                                                                                                                           │|
+|│   · branch pushed, draft PR #85 open (DR3)                                                                                                                                       │|
+|│                                                                                                                                                                                  │|
+|│ next                                                                                                                                                                             │|
+|│   · review first;                                                                                                                                                                │|
+|│   · fix its findings;                                                                                                                                                            │|
+|│   · ready only on the owner's word;                                                                                                                                              │|
+|│   · never merge                                                                                                                                                                  │|
+|│                                                                                                                                                                                  │|
+|│ newest file                                                                                                                                                                      │|
+|│   /Users/owner/.fleet-agent-mgmt/checks/atlas-ic-2/                                                                                                                              │|
+|│   stop-2.md                                                                                                                                                                      │|
+|│                                                                                                                                                                                  │|
+|│ awaiting                                                                                                                                                                         │|
+|│   · The owner's word in this pane to mark PR #85 ready. lead-1 review written 14:47: DR1-3 ok, gate 8 of 8, tests 1-3 shown (E12, E14, E15), nothing to rework                   │|
+|└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘|
++------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+# styles (colour keys: warning = amber, suggestion = blue, success = green)
+bold: FLEET
+dim:  · read-only · /fleet opens it
+dim: 16:55 · refreshed 3s ago
+dim: a–f open a card · 0 closes the card · Esc back to your prompt · other keys go to your prompt · ctrl+x x close…
+color=warning: ?
+bold: apex-ic-1
+dim: idle
+color=success: ✔
+bold: atlas-ic-1
+color=suggestion: busy
+bg=#262E3A: <Box key=row-c>
+color=warning: ▌
+color=success: ✔
+bold: atlas-ic-2
+dim: idle
+color=suggestion: ●
+bold: orbit-ic-1
+dim: idle
+color=suggestion: ●
+bold: orbit-ic-2
+dim: idle
+bold: workflow board-check-v0
+color=suggestion: running
+border=warning: <Box key=card>
+color=warning,bold: c · atlas-ic-2
+color=success: ✔ DONE · atl-43-r1 closed 2026-10-22 10:58 · close report in the record
+dim: updated 2026-10-21 14:46 BST · 2h09 ago
+dim,bold: stop
+dim: ·
+dim: ·
+dim,bold: next
+dim: ·
+dim: ·
+dim: ·
+dim: ·
+dim,bold: newest file
+dim,bold: awaiting
+dim: ·

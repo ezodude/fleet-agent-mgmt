@@ -1,0 +1,3 @@
+{"type":"launched"}
+{"type":"started","key":"k3","agentId":"agent-three","label":"runbook","phase":"Runbook"}
+{"type":"result","key":"k3","agentId":"agent-three","result":"runbook written"}

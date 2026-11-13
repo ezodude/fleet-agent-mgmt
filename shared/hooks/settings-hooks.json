@@ -1,0 +1,28 @@
+{
+  "_comment": "TEMPLATE of the hook keys in ~/.claude/settings.json (install.sh replaces @FLEET_REPO@ with the clone root, absolute). Was the INSTALLED RECORD of the hook keys in ~/.claude/settings.json. SessionStart compact -> postcompact-boot.sh (the owner asked for the hook and `# Compact instructions` at the user level in ~/.claude); Stop -> state-gate.sh (installed with its proof test on the owner's word); prompt-mark.sh is NOT here: it does work only for ICs, so it is installed per role in shared/launch/ic-settings.json (owner, fleet-state D1 placement a). Window 200000 is the owner's own /autocompact setting.",
+  "autoCompactEnabled": true,
+  "autoCompactWindow": 200000,
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "@FLEET_REPO@/shared/hooks/postcompact-boot.sh"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "@FLEET_REPO@/shared/hooks/state-gate.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

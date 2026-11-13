@@ -1,0 +1,28 @@
+{
+  "_comment": "TEST ONLY. Loaded with `claude --settings <this file>` into one session. Tiny auto-compact window so the compaction fires fast; both hooks repeated here so the test does not depend on settings merging.",
+  "autoCompactEnabled": true,
+  "autoCompactWindow": 60000,
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/path/to/fleet-repo/shared/hooks/postcompact-boot.sh"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/path/to/fleet-repo/shared/hooks/state-gate.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

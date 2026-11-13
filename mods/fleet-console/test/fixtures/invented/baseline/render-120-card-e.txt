@@ -1,0 +1,81 @@
+# fleet-console board, test-kit tree laid out as text (an approximation, not the engine's paint)
+# body columns 120, state card-e, input: invented fixtures, clock 2026-10-21 16:55 BST + 3 s
+# 35 lines, 0 wider than the body; the | marks the body's right edge
++------------------------------------------------------------------------------------------------------------------------+
+|FLEET · read-only · /fleet opens it                                                             16:55 · refreshed 3s ago|
+|a–f open a card · 0 closes the card · Esc back to your prompt · other keys go to your prompt · ctrl+x x closes the board|
+|                                                                                                                        |
+|5 IC (1 busy) · 0 wait on you · 1 workflow running                                                                      |
+| ? a: apex-ic-1 · APX-3 r1, research: which of the three help-page layouts reads best on a phone, with a short w… · idle|
+| ✔ b: atlas-ic-1 · ATL-42 r1, retry the nightly price import when the vendor times out, and show the retry count… · busy|
+| ✔ c: atlas-ic-2 · ATL-43 r1, a weekly email that lists the imports that failed, sent to the data team on Monday… · idle|
+| ● d: orbit-ic-1 · ORB-7 r2, research: which columns the weekly survey export keeps, then a draft schema for the… · idle|
+|▌● e: orbit-ic-2 · ORB-8 r1, a printable summary page for each finished survey (one PDF per survey, kept for a y… · idle|
+| f: workflow board-check-v0 · 0 of 2 agents returned · started 16:54 · running                                          |
+|                                                                                                                        |
+|┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐|
+|│ e · orbit-ic-2                                                                                         0: close card │|
+|│ ● NOT DONE · orb-8-r1 open · no close report yet                                                                     │|
+|│ updated 2026-10-21 BST                                                                                               │|
+|│                                                                                                                      │|
+|│ stop                                                                                                                 │|
+|│   · test page v4 built at 6f7a8b9 (footer shows the survey date);                                                    │|
+|│   · the footer card sent;                                                                                            │|
+|│   · waiting for the owner                                                                                            │|
+|│                                                                                                                      │|
+|│ next                                                                                                                 │|
+|│   · on the owner's reply: build the page for the three test surveys, check each PDF opens and prints on one page,    │|
+|│     run the gate with ORBIT_SURVEYS set;                                                                             │|
+|│   · STOP 2                                                                                                           │|
+|│                                                                                                                      │|
+|│ newest file                                                                                                          │|
+|│   /Users/owner/.fleet-agent-mgmt/checks/orbit-ic-2/                                                                  │|
+|│   from-lead-1-column-order.md                                                                                        │|
+|│                                                                                                                      │|
+|│ awaiting                                                                                                             │|
+|│   · PO and owner: a word on N4 here;                                                                                 │|
+|│   · a second test account to check the guest view;                                                                   │|
+|│   · the display names for the page header                                                                            │|
+|└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘|
++------------------------------------------------------------------------------------------------------------------------+
+
+# styles (colour keys: warning = amber, suggestion = blue, success = green)
+bold: FLEET
+dim:  · read-only · /fleet opens it
+dim: 16:55 · refreshed 3s ago
+dim: a–f open a card · 0 closes the card · Esc back to your prompt · other keys go to your prompt · ctrl+x x close…
+color=warning: ?
+bold: apex-ic-1
+dim: idle
+color=success: ✔
+bold: atlas-ic-1
+color=suggestion: busy
+color=success: ✔
+bold: atlas-ic-2
+dim: idle
+color=suggestion: ●
+bold: orbit-ic-1
+dim: idle
+bg=#262E3A: <Box key=row-e>
+color=warning: ▌
+color=suggestion: ●
+bold: orbit-ic-2
+dim: idle
+bold: workflow board-check-v0
+color=suggestion: running
+border=warning: <Box key=card>
+color=warning,bold: e · orbit-ic-2
+color=suggestion: ● NOT DONE · orb-8-r1 open · no close report yet
+dim: updated 2026-10-21 BST
+dim,bold: stop
+dim: ·
+dim: ·
+dim: ·
+dim,bold: next
+dim: ·
+dim: ·
+dim,bold: newest file
+dim,bold: awaiting
+dim: ·
+dim: ·
+dim: ·

@@ -1,0 +1,20 @@
+{
+  "note": "invented mtimes (local BST) for the session, workflow and card files; the generator never reads a file's mtime from disk. A run record's mtime is the timestamp inside it, the time the run ended",
+  "sessions/40001.json": "2026-10-21T16:53:17+01:00",
+  "sessions/41001.json": "2026-10-07T10:06:44+01:00",
+  "sessions/42001.json": "2026-10-21T16:56:04+01:00",
+  "sessions/42002.json": "2026-10-21T15:48:44+01:00",
+  "sessions/43001.json": "2026-10-21T16:33:28+01:00",
+  "sessions/43002.json": "2026-10-21T16:47:31+01:00",
+  "workflows/11111111-2222-4333-8444-555555555555/subagents/workflows/wf_5a6b7c8d-342/journal.jsonl": "2026-10-21T16:54:17+01:00",
+  "workflows/11111111-2222-4333-8444-555555555555/subagents/workflows/wf_9e8d7c6b-bfd/journal.jsonl": "2026-10-19T11:34:20+01:00",
+  "workflows/11111111-2222-4333-8444-555555555555/workflows/scripts/board-check-v0-wf_5a6b7c8d-342.js": "2026-10-21T16:54:16+01:00",
+  "workflows/11111111-2222-4333-8444-555555555555/workflows/scripts/demo-runbook-wf_9e8d7c6b-bfd.js": "2026-10-19T11:32:07+01:00",
+  "cards/ATL-42-D6.md": "2026-10-21T15:46:20+01:00",
+  "cards/ATL-43-D2.md": "2026-10-21T14:52:40+01:00",
+  "cards/ORB-7-N3.md": "2026-10-21T16:10:05+01:00",
+  "cards/ORB-7-N4.md": "2026-10-21T16:31:11+01:00",
+  "cards/fleet-G2.md": "2026-10-21T16:50:30+01:00",
+  "cards/board-check-D1.md": "2026-10-20T09:15:02+01:00",
+  "cards/broken.md": "2026-10-21T12:00:00+01:00"
+}

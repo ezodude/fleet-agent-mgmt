@@ -1,0 +1,2 @@
+{"type":"user","origin":{"kind":"human"},"message":{"role":"user","content":"where is ATL-42?"}}
+{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"ATL-42: test-ic is at STOP 1.\nThe card is on the board."}]}}

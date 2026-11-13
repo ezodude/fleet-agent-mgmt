@@ -1,0 +1,7 @@
+*-crosswalk.local.md
+
+# Machine-written nightly digest: whole top zone rewritten every run, and it is
+# generated from sources that include the crosswalk.
+TechLeads/*/progress/
+__pycache__/
+*.pyc
