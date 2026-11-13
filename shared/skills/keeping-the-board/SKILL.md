@@ -1,6 +1,6 @@
 ---
 name: keeping-the-board
-description: Use when the lead session writes or rewrites its board page (checks/lead-1/board.md), and at every event that creates or closes a piece of work: a ticket filed by any path, a brief ok'd, an IC launched, a close report accepted, an IC that cannot move, the owner's "done" on a task with no IC. Lead-only.
+description: "Use when the lead session writes or rewrites its board page (checks/lead-1/board.md), and at every event that creates or closes a piece of work: a ticket filed by any path, a brief ok'd, an IC launched, a close report accepted, an IC that cannot move, the owner's \"done\" on a task with no IC. Lead-only."
 ---
 
 # Keeping the board
