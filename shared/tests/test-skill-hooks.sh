@@ -368,6 +368,28 @@ check "chat gate: the bounce names the key" "$(jq -n --arg c "$L" --arg s "$S" -
 check "turn_text: an owner line mid-turn holds against a later task notice" "$(python3 "$HERE/turn_text.py" --start "$TD/testdata/chat-gate-midturn.jsonl")" owner
 check "chat gate: owner line typed mid-turn in a peer turn passes" "$(cg chat-gate-midturn.jsonl "$(printf 'ATL-42: yes, on the board.\nIts reply words are there too.')")" 0
 check "chat gate: ic sessions are not gated" "$(jq -n --arg c "$I" --arg s "$S" --arg p "$TD/testdata/chat-gate-peer-stop.jsonl" '{cwd:$c,session_id:$s,last_assistant_message:"ATL-42 noted\nmore",transcript_path:$p}' | "$HERE/stop-skill-gate.sh" 2>/dev/null; echo $?)" 0
+# board gate, lead: a board.md bullet carrying a decision card's field bounces (fleet-board F1)
+BD="$T/checks/lead-1"; mkdir -p "$BD"
+printf '# board\n## yours\n- ATL-42 D1 · rows are stale; rewrite (a) or hide (b) · say: ATL-42 D1 a · where: test-ic pane · since: 14:46Z\n' > "$BD/board.md"
+check "board gate: a one-sentence row passes" "$(stop "$L" '"ok"')" 0
+printf '# board\n## yours\n- ATL-42 D1 · problem: rows are stale · options: a) rewrite b) hide · say: ATL-42 D1 a · where: test-ic pane\n' > "$BD/board.md"
+check "board gate: a row with card fields bounces" "$(stop "$L" '"ok"')" 2
+check "board gate: the bounce names the row and card-add" "$(printf '{"cwd":"%s","session_id":"%s","last_assistant_message":"ok"}' "$L" "$S" | "$HERE/stop-skill-gate.sh" 2>&1 >/dev/null | grep -c 'BOARD GATE.*ATL-42 D1.*card-add.sh')" 1
+check "board gate: ic sessions are not gated" "$(stop "$I" '"ok"')" 0
+printf '# board\n## done today\n- ATL-42 · your words: the problem: was stale · 14:00Z\n' > "$BD/board.md"
+check "board gate: a label inside a sentence passes" "$(stop "$L" '"ok"')" 0
+rm -f "$BD/board.md"
+# board gate, lead: a board.md bullet carrying a decision card's field bounces (fleet-board F1)
+BD="$T/checks/lead-1"; mkdir -p "$BD"
+printf '# board\n## yours\n- ATL-42 D1 · rows are stale; rewrite (a) or hide (b) · say: ATL-42 D1 a · where: test-ic pane · since: 14:46Z\n' > "$BD/board.md"
+check "board gate: a one-sentence row passes" "$(stop "$L" '"ok"')" 0
+printf '# board\n## yours\n- ATL-42 D1 · problem: rows are stale · options: a) rewrite b) hide · say: ATL-42 D1 a · where: test-ic pane\n' > "$BD/board.md"
+check "board gate: a row with card fields bounces" "$(stop "$L" '"ok"')" 2
+check "board gate: the bounce names the row and card-add" "$(printf '{"cwd":"%s","session_id":"%s","last_assistant_message":"ok"}' "$L" "$S" | "$HERE/stop-skill-gate.sh" 2>&1 >/dev/null | grep -c 'BOARD GATE.*ATL-42 D1.*card-add.sh')" 1
+check "board gate: ic sessions are not gated" "$(stop "$I" '"ok"')" 0
+printf '# board\n## done today\n- ATL-42 · your words: the problem: was stale · 14:00Z\n' > "$BD/board.md"
+check "board gate: a label inside a sentence passes" "$(stop "$L" '"ok"')" 0
+rm -f "$BD/board.md"
 # message gate, ic
 send(){ o="$(printf '{"cwd":"%s","session_id":"%s","tool_name":"SendMessage","tool_input":{"to":"lead-1","message":%s}}' "$1" "$S" "$2" | "$HERE/message-gate.sh" 2>/dev/null)"; [ -n "$o" ] && printf '%s' "$o" | jq -r ".hookSpecificOutput.permissionDecisionReason" || echo allow; }
 boot "$I" >/dev/null

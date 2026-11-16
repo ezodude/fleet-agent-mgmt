@@ -44,6 +44,7 @@ A next row leaves the page only when a running row for it appears, or the owner 
 
 - `say:` is one word the owner types as written, the recommended one when there is a choice; the choice itself goes in the sentence. `where:` is the pane or chat it goes to.
 - One row per item. A ticket with three loose ends is one row whose sentence names three.
+- A row is one sentence. A decision's body (problem, stakes, happened, options, rec) goes in a card file, `shared/ledger/card-add.sh new <id> row=<ic|lead-1> where=<session> reply="<a> | <b>" < body`, which the viewer opens from the row; never in the row, where the viewer runs the fields together (the owner: "The formatting is broken on the board! everything looks like a jumble!", 2026-11-16). The Stop hook's board gate bounces a row carrying a card's field.
 - An empty section keeps its heading and has no bullet.
 - A row exists only on the page. A ledger entry, a ticket in the tracker or a line in chat is not a row.
 - When the page's sections differ from the template, the next write starts from the template.

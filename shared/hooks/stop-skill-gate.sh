@@ -11,6 +11,11 @@
 #         result, a notice; turn_text.py --start says machine) ends with no chat
 #         text, or one line naming no ticket key and no IC; else exit 2. Owner-typed
 #         and compaction turns are not checked. Spec: lead-ux/hook-chat-gate.md.
+#   lead  board gate: a bullet on $CHECKS/lead-1/board.md with a decision card's
+#         field (" · problem: ", " · options: ", ...) bounces, whatever the turn:
+#         the viewer runs a row's fields together, so a card body packed into a row
+#         reads as a jumble (2026-11-16, fleet-board F1). The body goes in a card
+#         file (shared/ledger/card-add.sh new); the row stays one sentence.
 # Solo: exit 0. Reads .last_assistant_message plus the turn's text and
 # SendMessage bodies from the transcript (turn_text.py, documented there).
 # Bounces at most TWICE per turn, counted in $MARKS/.bounces (reset when a
@@ -75,6 +80,14 @@ else
       echo "CHAT GATE: this turn was not the owner's; $why_. Put it on board.md (yours / running / owed / done today) or in a report, end with no chat text." >&2
       exit 2
     fi
+  fi
+fi
+if [ "$ROLE" = "lead" ] && [ -f "$CHECKS/lead-1/board.md" ]; then
+  bad="$(grep -E '^- .* · (problem|stakes|happened|options|rec|unverified|trace|reply): ' "$CHECKS/lead-1/board.md" | sed 's/^- //; s/ · .*//' | paste -sd',' - | sed 's/,/, /g')"
+  if [ -n "$bad" ]; then
+    mkdir -p "$MARKS" && echo $((n+1)) > "$MARKS/.bounces"
+    echo "BOARD GATE: board.md rows carry a decision card's fields ($bad); the viewer runs them together. Put each body in a card (shared/ledger/card-add.sh new <id> row=<ic|lead-1> where=<session> reply=\"<a> | <b>\" < body), shorten the row to <id> · <one sentence> · say: · where: · since:, then end the turn." >&2
+    exit 2
   fi
 fi
 [ -n "$missing" ] || exit 0
