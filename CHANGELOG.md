@@ -4,6 +4,13 @@ fleet-agent-mgmt changes, newest first, one line per change, its commits in brac
 The commits in brackets are from the private history this repo was cut from; they are not in this repo.
 Left out: ledger entries, lead-1 state-block commits, per-ticket design, spec and handoff records, session handoffs, test-only commits and merges. A day with only those has no heading.
 
+## 2026-11-16
+
+- Changed the board viewer to push on change: a watcher, `fleet-board-live.py`, posts to fzf's socket when the page, a card, a report or a `STATE.md` changes, and reads each session's pane state read only
+- Changed YOURS rows to lead with who asks, then the ticket and decision when the board has them
+- Added the card shape for a row with no card file, drawn from the row's own text
+- Added `d` hiding any YOURS row and `u` unhiding the last one; an open card leaves once done today names it
+
 ## 2026-11-12
 
 - Changed the code and the data to live apart: the clone is `FLEET_REPO`, the roster, records, checks and lead folders live in `FLEET_HOME` (default `~/.fleet-agent-mgmt`), and every hook and script finds both through `shared/lib/paths.sh` or `paths.py` (fff4cb4, 43b894c, cbaaec8, f014c1c)

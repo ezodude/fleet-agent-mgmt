@@ -70,6 +70,33 @@ if [ "$(keyof 'orbit #12 waits')" = "#12" ]; then ok board_lane_absent; else bad
 cp "$HERE/testdata/lane-prefixes.txt" "$d/lane-prefixes.txt"
 if [ "$(keyof 'orbit #12 waits')" = "orbit #12" ]; then ok board_lane_present; else bad board_lane_present "$(keyof 'orbit #12 waits')"; fi
 
+# board_who_first: a YOURS row leads with who asks (lead-1 when no IC's pane is named), then the ticket and decision
+plain() { sed $'s/\x1b\\[[0-9;]*m//g'; }
+brd() { FLEET_HOME="$d" bash "$REPO/shared/board/fleet-board.sh" "$@" 2>&1; }
+out="$(brd list | plain)"
+if echo "$out" | grep -qE '^ +lead-1 +ATL-12 +Robin decides'; then ok board_who_first; else bad board_who_first "$out"; fi
+# board_ic_ticket: an ask only in an IC's STATE.md is named by that IC's rung; with a decision id at its start, by that id
+mkdir -p "$d/checks/orbit-ic-1"; printf 'rung: ORB-7 r1 (the orbit loader)\nstop: STOP 2 sent\nawaiting: owner: the word to release\nupdated: 2026-01-01 08:00\n' > "$d/checks/orbit-ic-1/STATE.md"
+out="$(brd list | plain)"
+if echo "$out" | grep -qE '^ +orbit-ic-1 +ORB-7 r1 +the word to release'; then ok board_ic_ticket; else bad board_ic_ticket "$out"; fi
+sed -i.bak 's/^awaiting: owner: .*/awaiting: owner: ORB-7 D3 (keep the old loader, or drop it)/' "$d/checks/orbit-ic-1/STATE.md"
+out="$(brd list | plain)"
+if echo "$out" | grep -qE '^ +orbit-ic-1 +ORB-7 D3 +ORB-7 D3 \(keep'; then ok board_ic_decision; else bad board_ic_decision "$out"; fi
+# board_hide: d (done <bullet>) hides any YOURS row, whatever wrote it; u (undone) brings the last one back
+bul="$(brd list | awk -F'\t' '$2=="yours" && $3=="orbit-ic-1"{print $5}')"
+brd done "$bul" >/dev/null
+if ! brd list | plain | grep -qE 'orbit-ic-1 +ORB-7 D3'; then ok board_hide; else bad board_hide "still listed"; fi
+brd undone >/dev/null
+if brd list | plain | grep -qE 'orbit-ic-1 +ORB-7 D3'; then ok board_unhide; else bad board_unhide "not back"; fi
+# board_nocard: a row with no card file is drawn in the card shape from its own text
+out="$(FB_PEEK=1 FZF_PREVIEW_COLUMNS=70 brd preview yours ATL-12 'lead-1 chat' "$(brd list | awk -F'\t' '$3=="ATL-12"{print $5}')" | plain)"
+if echo "$out" | grep -q 'no card file' && echo "$out" | grep -qE '^problem +Robin decides' && echo "$out" | grep -qE '^reply +go with option b'; then ok board_nocard; else bad board_nocard "$out"; fi
+# board_card_done: an open card not on the page is a YOURS row until the page's done today names its ticket and decision
+mkdir -p "$d/checks/lead-1/cards"; printf 'id: ATL-12 D4\nrow: lead-1\nstatus: open\nsince: 2026-01-01 08:00 GMT\nwhere: lead-1\nreply: ATL-12 D4 a\nanswer: -\n---\nATL-12 D4\nKeep the index?\n' > "$d/checks/lead-1/cards/ATL-12-D4.md"
+if brd list | plain | grep -q 'ATL-12 D4'; then ok board_card_open; else bad board_card_open "card row missing"; fi
+printf '\n## done today\n\n- ATL-12 · D4 a, index kept · 08:50Z\n' >> "$d/checks/lead-1/board.md"
+if ! brd list | plain | grep -q 'ATL-12 D4 '; then ok board_card_done; else bad board_card_done "still listed"; fi
+
 # skill_frontmatter_yaml: a plain (unquoted) frontmatter value holding ": " is not valid YAML; GitHub fails to render it
 hits=""
 for f in "$REPO"/shared/skills/*/SKILL.md; do
