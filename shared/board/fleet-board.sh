@@ -244,7 +244,8 @@ header() { local y r n v w c; read -r y r n v w < "$D/counts" 2>/dev/null || { y
   if [ "$v" = log ]; then printf 'fleet-board · the log   everything lead-1 wrote: next, running, owed, today per ticket, to read; shaping; reports   page written %s   now %s   %sl back to the board%s\n' "$w" "$(date -u +%H:%MZ)" "$CB" "$C0"
   else printf 'fleet-board   yours %s%s%s   red %s   building %s   page written %s   now %s   the lead-1 chat stays for conversation\n' "$c" "$y" "$C0" "$r" "$((n-r))" "$w" "$(date -u +%H:%MZ)"; fi
   live_strip
-  printf 'l the log   p resize the details   J K or the wheel scroll them   hold Option to select text   enter the card, the IC\x27s state or the report   r copy the say line   y copy the id   a copy the attach line   o open the ticket   d hide   u unhide the last   q quit\n'; }
+  # the o hint shows only when $FLEET_HOME/board-links.tsv exists: without that file o opens nothing
+  printf 'l the log   p resize the details   J K or the wheel scroll them   hold Option to select text   enter the card, the IC\x27s state or the report   r copy the say line   y copy the id   a copy the attach line%s   d hide   u unhide the last   q quit\n' "$([ -f "$FLEET_HOME/board-links.tsv" ] && printf '   o open the ticket')"; }
 
 # a row with no card file is drawn in the card shape from its own text (lead-ux F2 a): problem, options, rec, reply
 nocard_body() { local w=$(( ${FZF_PREVIEW_COLUMNS:-72} - 2 )); printf '%scard %s%s  %sno card file · drawn from the row%s\n' "$CB" "$1" "$C0" "$CD" "$C0"
