@@ -154,7 +154,7 @@ card_files() { local id ids k f; id=$(id_of "$1"); f="$CARDS/${id// /-}.md"
     if [ -n "$ids" ]; then while read -r i; do f="$CARDS/${i// /-}.md"; [ -f "$f" ] && echo "$f"; done <<<"$ids"
     else k=$(key_of "$1"); [ -n "$k" ] && [ "$id" = "$k" ] && grep -l "^id: $k " "$CARDS"/*.md 2>/dev/null; fi
   } | while read -r f; do grep -q '^status: open' "$f" && echo "$f"; done; }
-card_body() { local w=$(( ${FZF_PREVIEW_COLUMNS:-72} - 2 )) st; st=$(sed -n 's/^status: //p' "$1"); [ "$st" = open ] || st="$st: $(sed -n 's/^answer: //p' "$1")"
+card_body() { local w=$(( ${FZF_PREVIEW_COLUMNS:-72} - 2 )) st; [ "$w" -gt 80 ] && w=80; st=$(sed -n 's/^status: //p' "$1"); [ "$st" = open ] || st="$st: $(sed -n 's/^answer: //p' "$1")"
   printf '%scard %s%s  since %s  %s\n\n' "$CB" "$(sed -n 's/^id: //p' "$1")" "$C0" "$(sed -n 's/^since: //p' "$1" | cut -c1-16)" "$st"
   sed '1,/^---$/d' "$1" | python3 -c '
 import sys, textwrap, re
@@ -247,47 +247,74 @@ header() { local y r n v w c; read -r y r n v w < "$D/counts" 2>/dev/null || { y
   # the o hint shows only when $FLEET_HOME/board-links.tsv exists: without that file o opens nothing
   printf 'l the log   p resize the details   J K or the wheel scroll them   hold Option to select text   enter the card, the IC\x27s state or the report   r copy the say line   y copy the id   a copy the attach line%s   d hide   u unhide the last   q quit\n' "$([ -f "$FLEET_HOME/board-links.tsv" ] && printf '   o open the ticket')"; }
 
-# a row with no card file is drawn in the card shape from its own text (lead-ux F2 a): problem, options, rec, reply
-nocard_body() { local w=$(( ${FZF_PREVIEW_COLUMNS:-72} - 2 )); printf '%scard %s%s  %sno card file · drawn from the row%s\n' "$CB" "$1" "$C0" "$CD" "$C0"
+# a row with no card file is drawn in the card shape from its own text (lead-ux F2 a, F12 a): nocard_body <id> <text> <say> <kind>.
+# The title takes the ticket and rung; why it is red and the clause that needs the owner's word come first; the rest is
+# one clause per line (label status on a red or running row, problem elsewhere); lines stop at 80 columns; commit hashes
+# and evidence ids are dimmed. Labels the writer gave (problem: options: rec: reply:) are kept as written.
+nocard_body() { local w=$(( ${FZF_PREVIEW_COLUMNS:-72} - 2 )); [ "$w" -gt 80 ] && w=80
   python3 -I -c '
 import sys, textwrap, re
-w = int(sys.argv[1]); text = sys.argv[2]; say = sys.argv[3]
-B, C, L = "\033[1m", "\033[34m", "\033[0m"; pad = " " * 10
+w = int(sys.argv[1]); rid = sys.argv[2]; text = sys.argv[3]; say = sys.argv[4]; kind = sys.argv[5]
+B, C, D, R, L = "\033[1m", "\033[34m", "\033[38;5;244m", "\033[1;38;5;160m", "\033[0m"; pad = " " * 10
 labels = "problem|stakes|happened|options|rec|unverified|trace|reply"
-out = []                                   # (label, text)
-def add(lab, t):
-    t = t.strip(" ;·")
-    if t: out.append((lab, t))
-rest = []
-for seg in re.split(r"\s+·\s+", text):
+YOURS = re.compile(r"\byour\b[^;.]{0,40}\b(word|call|ok|say|decision|answer)\b|\bneeds you\b|\byou decide\b", re.I)
+NOISE = re.compile(r"\b(?=[0-9a-f]*[0-9])(?=[0-9a-f]*[a-f])[0-9a-f]{7,40}\b|\b(?:E|DR)[0-9]+\b")
+segs = [x.strip() for x in re.split(r"\s+·\s+", text) if x.strip()]
+title, url, red = rid, "", ""
+if segs and len(segs[0]) <= 32 and re.match(r"^[A-Za-z][A-Za-z0-9]*[ -]#?[0-9]+( [a-z]+[0-9]+)?$", segs[0]) and segs[0] != rid:
+    title = rid + " · " + segs.pop(0)
+if segs:
+    m = re.match(r"^(https?://\S+?)(?::\s+|\s+|$)", segs[0])
+    if m: url = m.group(1); segs[0] = segs[0][m.end():].strip()
+out = []; rest = []
+for seg in segs:
+    if re.match(r"^red:\s*", seg): red = re.sub(r"^red:\s*", "", seg); continue
     parts = re.split(r"(?:(?<=^)|(?<=[\s;.(]))(%s):\s*" % labels, seg)
-    if parts[0].strip(): rest.append(parts[0])
-    for i in range(1, len(parts) - 1, 2): add(parts[i], parts[i + 1])
-body = " · ".join(r.strip() for r in rest if r.strip())
-opts = []
+    if parts[0].strip(): rest.append(parts[0].strip())
+    for i in range(1, len(parts) - 1, 2):
+        t = parts[i + 1].strip(" ;·")
+        if t: out.append((parts[i], t))
+body = " · ".join(rest); opts = []
 m = re.search(r"\(\s*(a[ )].*?)\)\s*$", body)        # "(a this, b that, c other)"
 if m:
-    items = re.split(r"(?:^|,\s+|;\s+)(?=[a-e]\)?\s)", m.group(1))
-    items = [i.strip() for i in items if i.strip()]
+    items = [i.strip() for i in re.split(r"(?:^|,\s+|;\s+)(?=[a-e]\)?\s)", m.group(1)) if i.strip()]
     if len(items) >= 2: opts = items; body = body[:m.start()].strip()
+if not opts:                                          # "... a) this b) that c) other"
+    m = re.search(r"(?:^|(?<=[\s.;]))a\)\s", body)
+    if m and re.search(r"\sb\)\s", body[m.end():]): opts = re.split(r"\s+(?=[b-e]\)\s)", body[m.start():]); body = body[:m.start()].strip()
 if not opts:
     m = re.search(r"[;.]\s*or\s+(\"[^\"]+\"[^.;]*)", body)   # ...; or "X later"
-    if m: opts = ["a) " + say if say else "", "b) " + m.group(1).strip()]; opts = [o for o in opts if o]; body = (body[:m.start()] + body[m.end():]).strip()
+    if m: opts = [o for o in ["a) " + say if say else "", "b) " + m.group(1).strip()] if o]; body = (body[:m.start()] + body[m.end():]).strip()
+clauses = []
+for seg in body.split(" · "):
+    for c in re.split(r";\s+|(?<=[a-z0-9)\]])\.\s+(?=[A-Z0-9\"])", seg):
+        c = c.strip(" ;·").rstrip(".")
+        if c: clauses.append(c)
+yours = [c for c in clauses if YOURS.search(c)] if len(clauses) > 1 else []
+clauses = [c for c in clauses if c not in yours]
 have = dict((l, 1) for l, _ in out)
-final = []
-if body and "problem" not in have: final.append(("problem", body))
-elif body: final.append(("", body))
-final += [(l, t) for l, t in out if l != "reply"]
-if opts and "options" not in have: final.append(("options", "\n".join(re.sub(r"^([a-e])\)?\s+", r"\1) ", o) for o in opts)))
-if say: final.append(("reply", say))
-for lab, t in final:
-    print()
+main = "status" if kind in ("red", "running") else "problem"
+if main in have or "problem" in have: main = ""
+def dim(s): return NOISE.sub(lambda m: D + m.group(0) + L, s)
+def block(lab, items, bullets=False, col=C, hang=""):
     first = True
-    for part in t.split("\n"):
-        body = textwrap.fill(part, width=w, initial_indent=pad, subsequent_indent=pad + ("   " if lab == "options" else ""))
-        if first and lab: body = C + B + lab.ljust(10) + L + body[10:]
-        first = False; print(body)
-' "$w" "$2" "$3"; echo; }
+    for it in items:
+        ind = pad + ("· " if bullets else ""); sub = pad + ("  " if bullets else hang)
+        for ln in textwrap.wrap(it, width=w, initial_indent=ind, subsequent_indent=sub) or [pad]:
+            ln = dim(ln)
+            if first and lab: ln = col + B + lab.ljust(10) + L + ln[10:]
+            first = False; print(ln)
+print(B + title + L + "   " + D + "no card file" + L)
+if url: print(D + url + L)
+if red: print(); block("red", [red], col=R)
+if yours: print(); block("yours", yours, bullets=len(yours) > 1)
+if clauses: print(); block(main, clauses, bullets=len(clauses) > 1)
+for lab, t in out:
+    if lab == "reply": continue
+    print(); block(lab, [t])
+if opts and "options" not in have: print(); block("options", [re.sub(r"^([a-e])\)?\s+", r"\1) ", o) for o in opts], hang="   ")
+if say: print(); block("reply", [say])
+' "$w" "$1" "$2" "$3" "${4:-}"; echo; }
 
 preview() { local kind=$1 id=$2 where=$3 line=$4 say k u pane f
   case "$kind" in head|gap|-|'') echo "move to an item."; return;;
@@ -296,9 +323,9 @@ preview() { local kind=$1 id=$2 where=$3 line=$4 say k u pane f
     report) printf '%s%s%s\n\n' "$CW" "$(head -1 "$line")" "$C0"; sed 1d "$line" | head -60; return;;
     "done today") printf '%s%s%s  today, in order\n\n' "$CW" "$id" "$C0"; tr '¶' '\n' <<<"$line" | awk '{ t="     "; if (match($0, /[0-9][0-9]:[0-9][0-9]Z/)) t=substr($0, RSTART, 5); printf "%s  %s\n\n", t, $0 }' | fold -s -w 70; return;; esac
   say=$(tok say "$line"); k=$(key_of "$id"); u=$(url_of "$k" "$where"); pane=$(pane_of "$where")
-  local w=$(( ${FZF_PREVIEW_COLUMNS:-72} - 2 )) cf; cf=$(card_files "$line"); printf '%s%s%s\n\n' "$CW" "$id" "$C0"
-  if [ -n "$cf" ]; then text_of "$line" | fold -s -w "$w"; echo; printf '%s\n' "$cf" | while read -r f; do card_body "$f"; done
-  else nocard_body "$id" "$(text_of "$line")" "$say"; fi
+  local w=$(( ${FZF_PREVIEW_COLUMNS:-72} - 2 )) cf; [ "$w" -gt 80 ] && w=80; cf=$(card_files "$line")
+  if [ -n "$cf" ]; then printf '%s%s%s\n\n' "$CW" "$id" "$C0"; text_of "$line" | fold -s -w "$w"; echo; printf '%s\n' "$cf" | while read -r f; do card_body "$f"; done
+  else nocard_body "$id" "$(text_of "$line")" "$say" "$kind"; fi
   [ -n "$say" ] && printf '%ssay%s    %s\n' "$CB" "$C0" "$(fold -s -w $((w-7)) <<<"$say" | sed '2,$s/^/       /')"
   [ -n "$where" ] && printf '%swhere%s  %s\n' "$CB" "$C0" "$where"
   live_of "${pane:-$id}" && printf '%slive%s   %s\n' "$CB" "$C0" "$(live_txt)"
