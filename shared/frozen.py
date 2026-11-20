@@ -282,6 +282,8 @@ def spec_reasons(record, text, repo):
     if fr.pre_log(folder(record)):   # froze before stop1.log: the rows only, as when it froze
         return reasons
     ap, spec = f.get("approved"), f.get("spec")
+    if spec:
+        repo, spec = spec_repo(spec, repo)
     if ap and ap != "-" and spec:
         r = git(repo, "show", f"{ap}:{spec}")
         if r.returncode:
@@ -308,8 +310,8 @@ def drift_reasons(record, worktree):
     f = read_frozen(record)
     if not f or not f["spec"]:
         return []
-    spec = f["spec"]
-    r = git(worktree, "show", f"HEAD:{spec}")
+    repo, spec = spec_repo(f["spec"], worktree)
+    r = git(repo, "show", f"HEAD:{spec}")
     if r.returncode:
         return [f"spec drift: {spec}, the frozen spec, is not in HEAD of {worktree} (deleted or moved after the "
                 "freeze); restore it at its path"]
@@ -369,6 +371,7 @@ def chain_reasons(record, repo):
     if not f or not f["spec"]:
         return []
     ap, spec = f["approved"], f["spec"]
+    repo, spec = spec_repo(spec, repo)
     if not ap or ap == "-":
         return [f"{NAME} in {record} has no approved sha: the freeze ran without the STOP 1 sha; stop and ask lead-1"]
     full = git(repo, "rev-parse", "-q", "--verify", f"{ap}^{{commit}}").stdout.strip()
@@ -524,6 +527,19 @@ def evidence_entries(path):
     return out
 
 
+def spec_repo(spec, cwd):
+    """(repo, repo path) for a STOP 1 spec line. A relative path is in the IC's worktree (cwd). An absolute
+    path is in the repo that holds it: a spec kept in the fleet repo's record folder, when the project
+    profile keeps rung documents out of the product repo (ROC-2643 P1 a, 2026-11-20)."""
+    if os.path.isabs(spec):
+        d = os.path.dirname(spec)
+        top = git(d, "rev-parse", "--show-toplevel").stdout.strip() if os.path.isdir(d) else ""
+        if top:
+            return top, os.path.relpath(os.path.realpath(spec), os.path.realpath(top))
+        return cwd, spec
+    return cwd, (spec[2:] if spec.startswith("./") else spec)
+
+
 def stop1(record, spec, sha, cwd):
     """Reasons a STOP 1 report is not ready: the spec at <sha> does not freeze, or main's runs are not in evidence."""
     record = folder(record)
@@ -532,11 +548,11 @@ def stop1(record, spec, sha, cwd):
         return []
     if fr.chore_record(record):
         return [f"{record} {CHORE_NO_STOP1}. Its first report is STOP 2 \"ready for push\", after shared/records/gate-run.sh"]
-    if git(cwd, "cat-file", "-e", f"{sha}^{{commit}}").returncode:
-        return [f"the spec line's sha {sha} is not a commit in {cwd}; the line is `spec  <repo path> @ <sha>`, the "
+    repo, path = spec_repo(spec, cwd)
+    if git(repo, "cat-file", "-e", f"{sha}^{{commit}}").returncode:
+        return [f"the spec line's sha {sha} is not a commit in {repo}; the line is `spec  <repo path> @ <sha>`, the "
                 "commit that holds screen one as the owner will read it"]
-    path = spec[2:] if spec.startswith("./") else spec
-    r = git(cwd, "show", f"{sha}:{path}")
+    r = git(repo, "show", f"{sha}:{path}")
     if r.returncode:
         return [f"{spec} is not in commit {sha}; the spec line names the spec by its repo path"]
     text = r.stdout
@@ -582,10 +598,10 @@ def stop1_log(record, spec, sha, cwd, name, session):
         return []
     if fr.chore_record(record):
         return [f"stop1.log not written: {record} {CHORE_NO_STOP1}"]
-    full = git(cwd, "rev-parse", "-q", "--verify", f"{sha}^{{commit}}").stdout.strip()
+    repo, path = spec_repo(spec, cwd)
+    full = git(repo, "rev-parse", "-q", "--verify", f"{sha}^{{commit}}").stdout.strip()
     if not full or not os.path.isdir(record):
-        return [f"stop1.log not written: {sha} is not a commit in {cwd}, or {record} is not a folder"]
-    path = spec[2:] if spec.startswith("./") else spec
+        return [f"stop1.log not written: {sha} is not a commit in {repo}, or {record} is not a folder"]
     line = f"{time.strftime('%Y-%m-%d %H:%M')} · STOP 1 · spec {path} @ {full} · {name} · session {session}\n"
     with open(os.path.join(record, STOP1_LOG), "a", encoding="utf-8") as fh:
         fh.write(line)

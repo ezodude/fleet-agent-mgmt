@@ -277,9 +277,17 @@ def fail(msg):
     raise Refused([msg])
 
 
+def spec_dir(spec):
+    """The folder git runs in for the spec: its own folder, so a spec kept in the fleet repo's record folder
+    (the project profile keeps rung documents out of the product repo) is read from the repo that holds it,
+    while the freeze runs in the IC's worktree (ROC-2643 platform r1, 2026-11-20)."""
+    return os.path.dirname(os.path.abspath(spec))
+
+
 def spec_sha(spec):
     """Short sha of the commit that holds the spec. A dirty or untracked spec is refused."""
-    git = lambda *a: subprocess.run(["git", *a], capture_output=True, text=True).stdout.strip()
+    git = lambda *a: subprocess.run(["git", "-C", spec_dir(spec), *a], capture_output=True, text=True).stdout.strip()
+    spec = os.path.abspath(spec)
     if git("status", "--porcelain", "--", spec):
         fail(f"{spec} has uncommitted changes; commit the approved spec first")
     sha = git("log", "-1", "--format=%h", "--", spec)
@@ -989,8 +997,8 @@ def screen_change(was_text, now_text):
 
 def approved_check(spec, text, approved):
     """The spec's repo path; refused when screen one at HEAD is not screen one at the approved commit."""
-    git = lambda *a: subprocess.run(["git", *a], capture_output=True, text=True)
-    path = git("ls-files", "--full-name", "--", spec).stdout.strip()
+    git = lambda *a: subprocess.run(["git", "-C", spec_dir(spec), *a], capture_output=True, text=True)
+    path = git("ls-files", "--full-name", "--", os.path.abspath(spec)).stdout.strip()
     if not path:
         fail(f"{spec} is not in git")
     if git("cat-file", "-e", f"{approved}^{{commit}}").returncode:
@@ -1011,11 +1019,11 @@ def approved_check(spec, text, approved):
     return path
 
 
-def approved_in_log(record, path, approved):
+def approved_in_log(record, path, approved, repo=None):
     """Refused unless <record>/stop1.log, written by the message gate when a STOP 1 report passes, holds
     a line for this spec path whose sha is --approved, and it is the newest line for that path."""
     log = os.path.join(record, "stop1.log")
-    full = subprocess.run(["git", "rev-parse", "-q", "--verify", f"{approved}^{{commit}}"], capture_output=True,
+    full = subprocess.run(["git", "-C", repo or os.getcwd(), "rev-parse", "-q", "--verify", f"{approved}^{{commit}}"], capture_output=True,
                           text=True).stdout.strip()
     try:
         text = open(log, encoding="utf-8").read()
@@ -1152,7 +1160,7 @@ def owner_ok(record, path, ic_cwd, root=None, lead_cwd=None, lead_old_cwd=None):
     after, stamp = stop1_time(record, path)
     after += 60
     folders = []
-    for cwd in lead_folders(lead_cwd, lead_old_cwd) + [ic_cwd]:
+    for cwd in lead_folders(lead_cwd, lead_old_cwd) + (list(ic_cwd) if isinstance(ic_cwd, (list, tuple)) else [ic_cwd]):
         d = os.path.join(root, log_slug(os.path.realpath(cwd)))
         if d not in folders:
             folders.append(d)
@@ -1254,6 +1262,12 @@ def ic_top(spec):
     return os.path.realpath(top or os.getcwd())
 
 
+def cwd_top():
+    """The repo top level of the freeze's cwd (the IC's worktree), else the cwd."""
+    top = subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True).stdout.strip()
+    return os.path.realpath(top or os.getcwd())
+
+
 def freeze(spec, record_arg, dump, approved=None):
     text = open(spec, encoding="utf-8").read()
     parsed = parse(text)
@@ -1272,7 +1286,8 @@ def freeze(spec, record_arg, dump, approved=None):
     gate = parsed["gate"]
     sha = spec_sha(spec)
     path = approved_check(spec, text, approved) if approved else \
-        subprocess.run(["git", "ls-files", "--full-name", "--", spec], capture_output=True, text=True).stdout.strip()
+        subprocess.run(["git", "-C", spec_dir(spec), "ls-files", "--full-name", "--", os.path.abspath(spec)],
+                       capture_output=True, text=True).stdout.strip()
     now = time.strftime("%Y-%m-%d %H:%M")
     out = [f"rules · {lane} r{rung.group(1)} · frozen at {sha} · {now}", ""] + parsed["blocks"]["TERMS"] + [""] \
         + standing_block() + [""]
@@ -1302,15 +1317,18 @@ def freeze(spec, record_arg, dump, approved=None):
         fail(f"{gate_path} exists; the gate is frozen. A line that cannot pass on origin/main is amended by lead-1 in gate.md, under a dated # Amended header line, then shared/amend-frozen.sh")
     if os.path.exists(os.path.join(record, "frozen.sha256")):
         fail(f"{os.path.join(record, 'frozen.sha256')} exists; the rung is frozen")
-    approved_in_log(record, path, approved)
+    approved_in_log(record, path, approved, spec_dir(spec))
     if not owner_exempt(record):
-        owner_ok(record, path, ic_top(spec))
+        owner_ok(record, path, [ic_top(spec), cwd_top()])
     os.makedirs(record, exist_ok=True)
     open(rules, "w", encoding="utf-8").write(content)
     if gate_out:
         open(gate_path, "w", encoding="utf-8").write("\n".join(gate_out))
     import frozen   # here, not at the top: frozen imports this module
-    frozen.write_frozen(record, f"frozen · {lane} r{rung.group(1)} · {now}", path, approved)
+    # A spec outside the freeze's repo is stored by its absolute path, so the chain reads it from the repo
+    # that holds it (frozen.spec_repo); a spec in the IC's worktree keeps its repo path.
+    stored = os.path.realpath(spec) if ic_top(spec) != cwd_top() else path
+    frozen.write_frozen(record, f"frozen · {lane} r{rung.group(1)} · {now}", stored, approved)
     dr = os.path.join(record, "decision-record.md")
     if os.path.exists(dr):
         t = open(dr, encoding="utf-8").read()
