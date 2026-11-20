@@ -297,7 +297,14 @@ add(){ reason="${reason:+$reason }$1"; }
 recs="$(grep -ls "· $NAME\$" "$RECORDS"/*/*/decision-record.md 2>/dev/null)"
 mine="$([ -n "$recs" ] && printf '%s\n' "$recs" | tr '\n' '\0' | xargs -0 ls -t 2>/dev/null | head -1)"
 rec="${mine:+$(dirname "$mine")}"
-own="$( [ -n "$rec" ] && sed -n 's/^BRANCH  *\([^ ,;]*\).*/\1/p' "$rec/handoff.md" 2>/dev/null | head -1)"
+# The rung's branches: the first name on the BRANCH line, plus each later name on that line with the
+# same leading path segment (a rung with two PRs names both: "feat/x-a (first PR), then feat/x-b").
+# A name ends at a space, comma, semicolon or bracket; "cut from origin/main" is never read as one.
+own="$( [ -n "$rec" ] && awk '/^BRANCH  /{ l=$0; sub(/^BRANCH  */,"",l); n=split(l,a,/[ ,;()]+/); f=a[1]; o=f; p=""
+  if (index(f,"/")) { p=f; sub(/\/.*/,"/",p) }
+  for (i=2;i<=n;i++) if (p!="" && index(a[i],p)==1 && a[i]!=f && index(" " o " "," " a[i] " ")==0) o=o" "a[i]
+  print o; exit }' "$rec/handoff.md" 2>/dev/null)"
+own_words="$(printf '%s' "$own" | sed 's/ / or /g')"
 no_record="RECORD GATE: no record folder for $NAME under $RECORDS (no decision-record.md whose header ends \"· $NAME\"). A fleet IC always has one: ask lead-1 which rung this is. Nothing is pushed and no pull request is opened without it."
 
 # (c) and (d) at the act: the newest gate receipt is at HEAD with 0 red lines; the jev audit is clean;
@@ -406,8 +413,8 @@ current(){ git -C "$1" symbolic-ref --short -q HEAD 2>/dev/null; }
 target_gate(){  # $1 branch, $2 dir, $3 what: never main or the default; only the handoff's BRANCH; no other author on origin/<branch>
   local t="$1" d="$2" what="$3" base me others
   if protected "$t" "$d"; then branch_gate "$t" "$what"; return; fi
-  if [ -n "$own" ] && [ "$t" != "$own" ]; then
-    add "BRANCH GATE: $what targets $t, which is not the rung's branch $own (the BRANCH line of $rec/handoff.md). The IC pushes only that branch and opens its draft PR from it; any other push is the owner's word: stop and ask in the pane."
+  if [ -n "$own" ] && case " $own " in *" $t "*) false ;; *) true ;; esac; then
+    add "BRANCH GATE: $what targets $t, which is not the rung's branch $own_words (the BRANCH line of $rec/handoff.md). The IC pushes only that branch and opens its draft PR from it; any other push is the owner's word: stop and ask in the pane."
     return
   fi
   git -C "$d" rev-parse -q --verify "refs/remotes/origin/$t" >/dev/null 2>&1 || return 0

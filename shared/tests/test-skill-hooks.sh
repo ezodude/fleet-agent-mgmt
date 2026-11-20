@@ -854,6 +854,11 @@ check "push-gate: a draft PR from another branch denied" "$(pg 'gh pr create --d
 cp "$R/handoff.md" "$R/handoff.md.keep"; printf '# ATL-42 · atlas · rung 1\nBRANCH  feat/atl-42, cut from origin/main; the IC pushes only this branch\n' > "$R/handoff.md"
 check "push-gate: a BRANCH line with a comma after the name still names the branch" "$(pg 'git push origin feat/atl-42' | grep -c "not the rung's branch")" 0
 check "push-gate: a BRANCH line with a comma still denies another branch" "$(pg 'git push origin someone-else' | grep -c "not the rung's branch feat/atl-42 ")" 1
+printf '# ATL-42 · atlas · rung 1\nBRANCH  feat/atl-42 (first PR), then feat/atl-42-b (second PR), each cut from origin/main\n' > "$R/handoff.md"
+check "push-gate: a BRANCH line naming two branches allows the first" "$(pg 'git push origin feat/atl-42' | grep -c "not the rung's branch")" 0
+check "push-gate: a BRANCH line naming two branches allows the second" "$(pg 'git push origin feat/atl-42-b' | grep -c "not the rung's branch")" 0
+check "push-gate: a BRANCH line naming two branches denies a third, naming both" "$(pg 'git push origin someone-else' | grep -c "not the rung's branch feat/atl-42 or feat/atl-42-b ")" 1
+check "push-gate: origin/main on the BRANCH line is never a rung branch" "$(pg 'git push origin origin/main' | grep -c "not the rung's branch")" 1
 mv "$R/handoff.md.keep" "$R/handoff.md"
 check "push-gate: a source that is not HEAD denied" "$(pg 'git push origin main~0:feat/atl-42' | grep -c 'SOURCE GATE: this push sends main~0')" 1
 git -C "$I" update-ref refs/remotes/origin/feat/atl-42 "$(git -C "$I" -c user.name=o -c user.email=other@x commit-tree 'HEAD^{tree}' -p HEAD -m other)"
