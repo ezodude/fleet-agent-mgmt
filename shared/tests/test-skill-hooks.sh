@@ -851,6 +851,10 @@ check "push-gate: gh -R pr create without --draft denied" "$(pg 'gh -R o/r pr cr
 check "push-gate: a merge through gh api denied" "$(pg 'gh api -X PUT repos/o/r/pulls/88/merge' | grep -c 'MERGE GATE')" 1
 check "push-gate: a branch that is not the handoff's BRANCH denied" "$(pg 'git push origin someone-else' | grep -c "not the rung's branch feat/atl-42")" 1
 check "push-gate: a draft PR from another branch denied" "$(pg 'gh pr create --draft --head someone-else' | grep -c "not the rung's branch feat/atl-42")" 1
+cp "$R/handoff.md" "$R/handoff.md.keep"; printf '# ATL-42 · atlas · rung 1\nBRANCH  feat/atl-42, cut from origin/main; the IC pushes only this branch\n' > "$R/handoff.md"
+check "push-gate: a BRANCH line with a comma after the name still names the branch" "$(pg 'git push origin feat/atl-42' | grep -c "not the rung's branch")" 0
+check "push-gate: a BRANCH line with a comma still denies another branch" "$(pg 'git push origin someone-else' | grep -c "not the rung's branch feat/atl-42 ")" 1
+mv "$R/handoff.md.keep" "$R/handoff.md"
 check "push-gate: a source that is not HEAD denied" "$(pg 'git push origin main~0:feat/atl-42' | grep -c 'SOURCE GATE: this push sends main~0')" 1
 git -C "$I" update-ref refs/remotes/origin/feat/atl-42 "$(git -C "$I" -c user.name=o -c user.email=other@x commit-tree 'HEAD^{tree}' -p HEAD -m other)"
 check "push-gate: origin/<branch> with another author's commit denied" "$(pg 'git push origin feat/atl-42' | grep -c 'origin/feat/atl-42 holds commits by other@x')" 1

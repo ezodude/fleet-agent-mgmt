@@ -297,7 +297,7 @@ add(){ reason="${reason:+$reason }$1"; }
 recs="$(grep -ls "· $NAME\$" "$RECORDS"/*/*/decision-record.md 2>/dev/null)"
 mine="$([ -n "$recs" ] && printf '%s\n' "$recs" | tr '\n' '\0' | xargs -0 ls -t 2>/dev/null | head -1)"
 rec="${mine:+$(dirname "$mine")}"
-own="$( [ -n "$rec" ] && sed -n 's/^BRANCH  *\([^ ]*\).*/\1/p' "$rec/handoff.md" 2>/dev/null | head -1)"
+own="$( [ -n "$rec" ] && sed -n 's/^BRANCH  *\([^ ,;]*\).*/\1/p' "$rec/handoff.md" 2>/dev/null | head -1)"
 no_record="RECORD GATE: no record folder for $NAME under $RECORDS (no decision-record.md whose header ends \"· $NAME\"). A fleet IC always has one: ask lead-1 which rung this is. Nothing is pushed and no pull request is opened without it."
 
 # (c) and (d) at the act: the newest gate receipt is at HEAD with 0 red lines; the jev audit is clean;
