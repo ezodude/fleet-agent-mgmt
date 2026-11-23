@@ -4,6 +4,10 @@ fleet-agent-mgmt changes, newest first, one line per change, its commits in brac
 The commits in brackets are from the private history this repo was cut from; they are not in this repo.
 Left out: ledger entries, lead-1 state-block commits, per-ticket design, spec and handoff records, session handoffs, test-only commits and merges. A day with only those has no heading.
 
+## 2026-11-23
+
+- Changed shaping sessions (`shape-up.sh`) to run on claude-fable-5-2 at high effort, set in `shape-settings.json`
+
 ## 2026-11-16
 
 - Changed the board viewer to push on change: a watcher, `fleet-board-live.py`, posts to fzf's socket when the page, a card, a report or a `STATE.md` changes, and reads each session's pane state read only
