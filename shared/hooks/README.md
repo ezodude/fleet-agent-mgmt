@@ -183,7 +183,8 @@ script resolves the role from the roster and exits 0 for a solo session.
                                              audit clean; not main, master or the default branch; the BRANCH
                                              line of <record>/handoff.md, when it has one; no commit on
                                              origin/<branch> by an author other than the worktree's
-                                             user.email; the pushed source is HEAD; a plain push (no
+                                             user.email; the pushed source is HEAD, or below it with only
+                                             frozen-spec commits above; a plain push (no
                                              --force, -f, --force-with-lease, +refspec, glob refspec,
                                              --delete, --prune, --mirror, --all, --tags); gh pr create
                                              with --draft. Read wherever git or gh stands in a segment,

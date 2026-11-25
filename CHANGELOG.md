@@ -4,6 +4,10 @@ fleet-agent-mgmt changes, newest first, one line per change, its commits in brac
 The commits in brackets are from the private history this repo was cut from; they are not in this repo.
 Left out: ledger entries, lead-1 state-block commits, per-ticket design, spec and handoff records, session handoffs, test-only commits and merges. A day with only those has no heading.
 
+## 2026-11-25
+
+- Changed the push gate to allow a push of a commit below HEAD when every commit above it changes only the frozen spec and none is a merge, so a rung can keep its spec off the remote while its checks read it at HEAD
+
 ## 2026-11-23
 
 - Changed shaping sessions (`shape-up.sh`) to run on claude-fable-5-2 at high effort, set in `shape-settings.json`

@@ -21,7 +21,10 @@
 #                  not the BRANCH line of <record>/handoff.md (when it has one);
 #                  origin/<target> holds a commit by an author other than the
 #                  worktree's user.email; the pushed source is not HEAD (the
-#                  commit the receipt covers); or the push uses --force, -f,
+#                  commit the receipt covers), unless every commit between the
+#                  source and HEAD changes only the frozen spec of frozen.sha256
+#                  and none is a merge (the spec stays off the remote while the
+#                  record's checks read it at HEAD); or the push uses --force, -f,
 #                  --force-with-lease, a +refspec, a glob refspec, --delete,
 #                  --prune, --mirror, --all or --tags.
 #                  FROZEN GATE: rules.md or gate.md differs from <record>/frozen.sha256;
@@ -410,6 +413,18 @@ branch_gate(){  # $1 branch, $2 what
   add "BRANCH GATE: $2 targets $1, which is main, master or the repo's default branch. The IC pushes only the rung's own feature branch, named in the handoff; a push to main or the default branch, and a pull request from it, are the owner's word: stop and ask in the pane."
 }
 current(){ git -C "$1" symbolic-ref --short -q HEAD 2>/dev/null; }
+spec_only(){  # $1 dir, $2 source sha, $3 HEAD sha: the source is below HEAD and every commit above it changes only
+  # the frozen spec (the spec line of <record>/frozen.sha256, a path in this repo), no merge among them. The
+  # receipt at HEAD covers the source's code, since the commits above it add no other file (ROC-4215 C1 a, 2026-11-25).
+  local d="$1" s="$2" h="$3" spec files
+  [ -n "$rec" ] && [ -n "$s" ] && [ -n "$h" ] || return 1
+  spec="$(sed -n 's/^spec  *//p' "$rec/frozen.sha256" 2>/dev/null | head -1)"; spec="${spec#./}"
+  [ -n "$spec" ] && case "$spec" in /*) return 1;; esac
+  git -C "$d" merge-base --is-ancestor "$s" "$h" 2>/dev/null || return 1
+  [ -z "$(git -C "$d" rev-list --merges "$s..$h" 2>/dev/null)" ] || return 1
+  files="$(git -C "$d" log --format= --name-only --no-renames "$s..$h" 2>/dev/null | sed '/^$/d' | sort -u)"
+  [ "$files" = "$spec" ]
+}
 target_gate(){  # $1 branch, $2 dir, $3 what: never main or the default; only the handoff's BRANCH; no other author on origin/<branch>
   local t="$1" d="$2" what="$3" base me others
   if protected "$t" "$d"; then branch_gate "$t" "$what"; return; fi
@@ -457,8 +472,9 @@ while IFS=$'\t' read -r kind d flags branches sources prtext; do
       hsha="$(git -C "$d" rev-parse -q --verify HEAD 2>/dev/null)"
       for src in ${sources:-HEAD}; do
         ssha="$(git -C "$d" rev-parse -q --verify "$src^{commit}" 2>/dev/null)"
-        [ -n "$ssha" ] && [ "$ssha" = "$hsha" ] ||
-          add "SOURCE GATE: this push sends $src (${ssha:0:7}), not HEAD (${hsha:0:7}), the commit the gate receipt covers. Push HEAD of the rung's branch, by name while it is checked out."
+        [ -n "$ssha" ] && [ "$ssha" = "$hsha" ] && continue
+        spec_only "$d" "$ssha" "$hsha" && continue
+        add "SOURCE GATE: this push sends $src (${ssha:0:7}), not HEAD (${hsha:0:7}), the commit the gate receipt covers. Push HEAD of the rung's branch, by name while it is checked out; or, to keep the spec off the remote, a commit below HEAD with only spec commits above it (each changes the frozen spec named in <record>/frozen.sha256 and nothing else, no merge)."
       done
       set +f
       ;;
