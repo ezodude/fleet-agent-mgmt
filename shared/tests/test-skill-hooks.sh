@@ -862,16 +862,16 @@ check "push-gate: origin/main on the BRANCH line is never a rung branch" "$(pg '
 mv "$R/handoff.md.keep" "$R/handoff.md"
 # SOURCE GATE: HEAD, or a commit below it with only frozen-spec commits above (ROC-4215 C1 a): the spec stays off the remote
 check "push-gate: a source below HEAD with only the frozen spec's commit above allowed" "$(pg 'git push origin main~0:feat/atl-42')" allow
-git -C "$I" checkout -q -b src-t main; printf 'code\n' > "$I/code.txt"; git -C "$I" add code.txt; git -C "$I" -c user.name=t commit -qm code; C="$(git -C "$I" rev-parse HEAD)"
-git -C "$I" checkout -q "$H" -- docs/atl-42-spec.md; git -C "$I" -c user.name=t commit -qm spec; SP="$(git -C "$I" rev-parse HEAD)"
-git -C "$I" checkout -q feat/atl-42; git -C "$I" reset -q --hard "$SP"; green "$SP"
-check "push-gate: the code commit below a spec-only HEAD allowed" "$(pg "git push origin $C:feat/atl-42")" allow
+git -C "$I" checkout -q -b src-t main; printf 'code\n' > "$I/code.txt"; git -C "$I" add code.txt; git -C "$I" -c user.name=t commit -qm code; PGC="$(git -C "$I" rev-parse HEAD)"
+git -C "$I" checkout -q "$H" -- docs/atl-42-spec.md; git -C "$I" -c user.name=t commit -qm spec; PGS="$(git -C "$I" rev-parse HEAD)"
+git -C "$I" checkout -q feat/atl-42; git -C "$I" reset -q --hard "$PGS"; green "$PGS"
+check "push-gate: the code commit below a spec-only HEAD allowed" "$(pg "git push origin $PGC:feat/atl-42")" allow
 check "push-gate: a source with a code commit above it denied" "$(pg 'git push origin main:feat/atl-42' | grep -c 'SOURCE GATE: this push sends main ')" 1
 check "push-gate: a source that is not below HEAD denied" "$(pg "git push origin $(git -C "$I" -c user.name=t commit-tree 'main^{tree}' -p main -m side):feat/atl-42" | grep -c 'SOURCE GATE')" 1
-git -C "$I" reset -q --hard "$C"; git -C "$I" checkout -q "$H" -- docs/atl-42-spec.md; printf 'more\n' >> "$I/code.txt"; git -C "$I" -c user.name=t commit -qam 'spec and code'; green "$(git -C "$I" rev-parse HEAD)"
-check "push-gate: a commit above the source that changes the spec and another file denied" "$(pg "git push origin $C:feat/atl-42" | grep -c 'SOURCE GATE')" 1
-git -C "$I" reset -q --hard "$(git -C "$I" -c user.name=t commit-tree "$SP^{tree}" -p "$C" -p "$SP" -m merge)"; green "$(git -C "$I" rev-parse HEAD)"
-check "push-gate: a merge above the source denied" "$(pg "git push origin $C:feat/atl-42" | grep -c 'SOURCE GATE')" 1
+git -C "$I" reset -q --hard "$PGC"; git -C "$I" checkout -q "$H" -- docs/atl-42-spec.md; printf 'more\n' >> "$I/code.txt"; git -C "$I" -c user.name=t commit -qam 'spec and code'; green "$(git -C "$I" rev-parse HEAD)"
+check "push-gate: a commit above the source that changes the spec and another file denied" "$(pg "git push origin $PGC:feat/atl-42" | grep -c 'SOURCE GATE')" 1
+git -C "$I" reset -q --hard "$(git -C "$I" -c user.name=t commit-tree "$PGS^{tree}" -p "$PGC" -p "$PGS" -m merge)"; green "$(git -C "$I" rev-parse HEAD)"
+check "push-gate: a merge above the source denied" "$(pg "git push origin $PGC:feat/atl-42" | grep -c 'SOURCE GATE')" 1
 git -C "$I" reset -q --hard "$H"; git -C "$I" branch -q -D src-t; green
 git -C "$I" update-ref refs/remotes/origin/feat/atl-42 "$(git -C "$I" -c user.name=o -c user.email=other@x commit-tree 'HEAD^{tree}' -p HEAD -m other)"
 check "push-gate: origin/<branch> with another author's commit denied" "$(pg 'git push origin feat/atl-42' | grep -c 'origin/feat/atl-42 holds commits by other@x')" 1
