@@ -54,7 +54,8 @@ Rules:
     none            nothing awaited; the whole value, nothing after it
     owner:          the owner; the only form shown as "waiting on you"
     lead-1:         lead-1
-    <roster name>:  a session named in the ```fleet block of $FLEET_HOME/roster.md
+    <roster name>:  a session named in the ```fleet block of $FLEET_HOME/roster.md, or a
+                    reviewer named in its ```reviewers block (lead-1 waiting on a review report)
   ```
 
   A colon form is `<who>: <text>`: the colon, a space, then text. A line

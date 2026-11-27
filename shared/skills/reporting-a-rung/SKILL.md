@@ -19,6 +19,7 @@ line, or lead-1 sets it to what origin/main prints (a line main cannot pass).
 **REQUIRED BACKGROUND:** `foundations/gate-block.md`,
 `foundations/decision-card.md`, `foundations/grove-monitoring.md`,
 `foundations/artifact-caps.md`, `foundations/one-way.md`,
+`foundations/pr-comments.md` (review comments on the rung's PR),
 `recording-a-decision` (the entries the review reads).
 
 ## The rung's STOPs
@@ -28,6 +29,7 @@ line, or lead-1 sets it to what origin/main prints (a line main cannot pass).
   (build)  autonomous: no STOP; a ONE-WAY line is an ask in the pane, quoting the rules.md line
   STOP 2   "ready for push", at a green receipt       no hold: a report; the IC pushes its branch and opens a draft PR
   (after)  lead-1's audit of the record               rework in the IC's pane; the band recorded at the close
+  (review) comments on the rung's PR                  no STOP; fix or reply, one DR each; a one-way reply is an ask in the pane
   per-task STOPs only when the handoff's MODE line says so (band 3+)
 ```
 
@@ -124,9 +126,13 @@ Fill `templates/stop-report.md`. Rules the template cannot enforce:
      summary.
    One DR for the push, one for the PR, each naming the receipt; no
    `owner` line needed. The owner's word, always: marking the PR ready,
-   merging, closing, a PR body or comment after ready, any other push,
+   merging, closing, a PR body after ready, a PR comment or reply that
+   commits to a one-way act or to scope outside the rung, any other push,
    any deploy outside the sandbox scope, and shared writes. The IC
    never merges. `push-gate.sh` enforces the push and PR conditions.
+   The IC answers review comments on its own PR itself, before and after
+   ready (`foundations/pr-comments.md`): a fix, an answer or a question,
+   one DR per post.
 
 ## Lead side: the audit after the push
 
@@ -138,6 +144,11 @@ wait for it. lead-1 reads four things and never the diff:
                           every UAT entry: count them; they are the owner's own words, never re-asked
                           a ONE-WAY act with no `owner` line: the owner's card, always, whatever else is green
                           the push and draft PR DRs need no `owner` line: each names a green receipt at HEAD
+                          DRs written after the REVIEW entry (review fixes, replies) get their `review` lines in a
+                          second REVIEW entry before the close is accepted; a reply DR needs no `owner` line.
+                          No hook proves two things, so that entry reads them: each review fix is inside the handoff's
+                          scope (Jev reads the entry, not the handoff), and each post on the PR says what its DR says
+                          unless it commits to a one-way act
   2  the receipt          through the haiku check: every gate line green, or red named
   3  the spec's TESTS     each row's E id from the STOP 2 report (the spec carries none) in evidence.md,
                           the output quoted: proven | unproven
@@ -292,6 +303,8 @@ IC state. Rules:
   reason other than the two that count and the one that does not.
 - A UAT entry relayed to the owner as news, or re-asked as a card.
 - An audit that passes a ONE-WAY act with no `owner` line.
+- An IC waiting for the owner's word to answer a two-way review comment.
+- A close accepted with a review fix or reply DR that has no `review` line.
 - A push or draft PR with no green receipt at HEAD, to a branch that is
   not the rung's own, or forced.
 - A third re-run of the same red line, or a re-run outside the worktree

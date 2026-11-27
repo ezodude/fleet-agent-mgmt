@@ -35,6 +35,10 @@ one-way and two-way decisions, blameless and accountable.
                                          gate-run.sh runs gate.md ──▶ receipt                  <record>/receipts/<stamp>-gate.md
                                  ◀────── STOP 2: ready for push (a report, no hold)            message-gate.sh: receipt at HEAD, no ✔ over red; jev audit exit 0
                                          push the rung's own branch, open a draft PR           push-gate.sh: the five conditions (one-way.md); one DR each
+                                         pr-watch.sh: a review comment ──▶ superpowers:receiving-code-review   foundations/pr-comments.md; until the merge, no STOP
+                                           right: DR, fix, commit, receipt, push, reply                <record>/decision-record.md; push-gate.sh REPLY GATE
+                                           wrong: DR, reply with evidence · unclear: DR, reply as a question
+                                           a reply that commits to a one-way act or out-of-rung work ──▶ ask in the pane
   lead-1: the audit after the push (never the diff)                                            REVIEW entry and DR `review` lines in the record
     DRs ok | rework, gates, TESTS, SUBTLETIES ──▶ band
     rework ordered in the pane ───────▶  new commits, same branch, new receipt, ready
@@ -58,6 +62,10 @@ already running keeps its frozen `rules.md` and `gate.md`.
   is the act a push of the rung's own branch, or opening its draft PR?
     yes ──▶ all five conditions hold (one-way.md, Two-way)?
               yes ──▶ one DR for the push, one for the PR, each naming the receipt; then act. No `owner` line.
+              no  ──▶ it is one-way: stop and ask.
+  is the act a comment or reply on the rung's own PR?
+    yes ──▶ a fix report, an answer or a question, committing to nothing one-way and nothing outside the rung?
+              yes ──▶ one DR, read the jev line, post. No `owner` line.
               no  ──▶ it is one-way: stop and ask.
   is the act a re-run of a red gate line?
     yes ──▶ does the fix stay inside the worktree (code, tests, local cache, local tools)?
@@ -90,7 +98,9 @@ already running keeps its frozen `rules.md` and `gate.md`.
 STOP 2 "ready for push" is a report, not a hold: the IC sends it at a green
 receipt at HEAD and pushes without waiting. lead-1 audits the record after
 the push (DR `review` lines, gates, TESTS, SUBTLETIES) and writes the
-REVIEW entry. The band is recorded at the close.
+REVIEW entry. The band is recorded at the close. DRs written after the
+REVIEW entry (review fixes and replies, foundations/pr-comments.md) are
+audited in a second REVIEW entry before the close is accepted.
 
 ```
   any ONE-WAY act with no `owner` line in the record?

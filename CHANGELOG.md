@@ -4,6 +4,18 @@ fleet-agent-mgmt changes, newest first, one line per change, its commits in brac
 The commits in brackets are from the private history this repo was cut from; they are not in this repo.
 Left out: ledger entries, lead-1 state-block commits, per-ticket design, spec and handoff records, session handoffs, test-only commits and merges. A day with only those has no heading.
 
+## 2026-11-27
+
+- Added the review step for rung ICs: once its draft PR is open an IC watches it with `pr-watch.sh`, checks each review comment against the code and answers with a fix, an answer or a question, one decision record entry per fix and per reply
+- Changed the standing one-way list and the two Jev standing questions: a reply on the rung's own pull request is two-way, a reply that commits to a one-way act or to work outside the rung needs the owner's word
+- Added a third Jev standing question, asked only of a comment or reply entry: does the reply commit to a merge, a deploy, a follow-up ticket, a later pull request, a new feature or a change in another repo
+- Added the reply calibration, 31 entries scored twice by real Jev: the stubbed tests pin the wording, the calibration pins the behaviour, and a changed question fails the suite until it is run again
+- Added a reply gate to the push gate: a comment or reply post is refused when the newest entry's Jev line says stop and ask or rework, or when the text names the fleet
+- Added to the reply gate: the newest entry must be the entry for this post and name the same pull request, one entry lets one post through, and an IC's approval or request for changes is refused
+- Added the reviewer role: one session per designated repo, listed in the roster's reviewers block, launched by `agent-up.sh` on `reviewer-settings.json`, outside the cap of active projects and idle until a pull request is handed to it
+- Changed the reviewer's deny list to refuse a write by its shape, wherever the flag stands, and the Stop gate to take a reviewer's name on lead-1's `awaiting` line
+- Added the `reviewing-a-team-pr` skill: a plain summary, core findings only, an unverified list, and drafted comments the owner posts; after the merge the reviewer writes `close.md` under `pr-<n>-review`, which the precedent sweep reads unchanged
+
 ## 2026-11-25
 
 - Changed the push gate to allow a push of a commit below HEAD when every commit above it changes only the frozen spec and none is a merge, so a rung can keep its spec off the remote while its checks read it at HEAD

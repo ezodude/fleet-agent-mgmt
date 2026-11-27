@@ -45,7 +45,9 @@ cwd="$(cd "${cwd:-$PWD}" 2>/dev/null && pwd -P)" || exit 0
 # one of its four forms. $2 lead: the ```state fence only; ic: the file
 # above "## log", fence lines skipped.
 # awaiting: the value is "none" and nothing else, or "<who>: <text>" where
-# <who> is owner, lead-1 or a name from the roster's ```fleet block and
+# <who> is owner, lead-1 or a name from the roster's ```fleet block or its
+# ```reviewers block (lead-1 waits on a reviewer's report; the reviewers
+# block is read for this check only, never to resolve a role) and
 # <text> is not empty; a line naming owner: with others opens with owner:.
 # After any other opening, the owner named again with a colon, by "owner" or
 # by the name on the roster's **owner: <name>** line, in any case, is a
@@ -54,7 +56,7 @@ cwd="$(cd "${cwd:-$PWD}" 2>/dev/null && pwd -P)" || exit 0
 # function alone.
 shape() {
   local roster="${FLEET_ROSTER:-$FLEET_HOME/roster.md}" names oname
-  names="$(sed -n '/^```fleet$/,/^```$/p' "$roster" 2>/dev/null | sed '1d;$d' | cut -f1 | tr '\n' ' ')"
+  names="$({ sed -n '/^```fleet$/,/^```$/p' "$roster"; sed -n '/^```reviewers$/,/^```$/p' "$roster"; } 2>/dev/null | grep -v '^```' | cut -f1 | tr '\n' ' ')"
   oname="$(sed -n 's/^\*\*owner: \([^*]*[^* ]\) *\*\*.*/\1/p' "$roster" 2>/dev/null | head -1)"
   awk -v mode="$2" -v names="$names" -v roster="$roster" -v oname="$oname" '
     BEGIN { n = split("session role rung handoff repo branch head pushed dirty stop awaiting notice next updated evidence", K, " ")
@@ -107,7 +109,7 @@ bounce_shape() {
   { echo "STATE GATE: $1 breaks the state shape:"; printf '%s\n' "$faults" | head -12
     echo "Keep one line per key, saying where things are now. Move older text, word for word, under a \"## log\" heading below the block, one \"- \" bullet per line, a <word> in backticks (schema: $SCHEMA). Then end the turn."
     printf '%s\n' "$faults" | grep -q '"awaiting"' && \
-      echo "The awaiting line opens with exactly one of: none | owner: | lead-1: | <roster name>: (a name from the roster's \`\`\`fleet block), free text after; \"none\" is the whole value. Only owner: shows as waiting on the owner, so a line waiting on the owner and others opens owner: (e.g. \"owner: merge the PR; lead-1: the S5 ruling\"); after another opening, the owner named with a colon (owner:, Owner: or their name:) is a fault."; } >&2
+      echo "The awaiting line opens with exactly one of: none | owner: | lead-1: | <roster name>: (a name from the roster's \`\`\`fleet or \`\`\`reviewers block), free text after; \"none\" is the whole value. Only owner: shows as waiting on the owner, so a line waiting on the owner and others opens owner: (e.g. \"owner: merge the PR; lead-1: the S5 ruling\"); after another opening, the owner named with a colon (owner:, Owner: or their name:) is a fault."; } >&2
   exit 2
 }
 

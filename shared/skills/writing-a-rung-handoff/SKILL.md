@@ -82,11 +82,16 @@ to live state), `foundations/gate-block.md`, `foundations/one-way.md`,
    6  push, PR      at a green receipt at HEAD and the jev audit exit 0: push the rung's own
                     branch, open a draft PR, one DR each; no word needed; lead-1 audits the
                     record after the push, rework comes as new commits on the same branch      no hold
-   7  ready, merge  marking the PR ready on the owner's word in this pane (one DR with the
+   7  review        shared/records/pr-watch.sh on the PR, in the background; each comment:
+                    superpowers:receiving-code-review as foundations/pr-comments.md; fix or
+                    reply, one DR each; the word only before a one-way or out-of-rung reply    no hold
+   8  ready, merge  marking the PR ready on the owner's word in this pane (one DR with the
                     owner line); the owner merges; the IC never merges                          -> close
    superpowers:verification-before-completion before STOP 1, STOP 2 and the push
    ```
-   Never as a sentence. In `per-task STOPs` mode step 4 adds a STOP
+   Never as a sentence. The review step runs from the draft PR until the
+   merge, beside step 8, and has no STOP: the IC answers each comment as
+   it arrives. In `per-task STOPs` mode step 4 adds a STOP
    after every plan task. The spec replaces superpowers:brainstorming's
    design doc; the brief was the brainstorm.
 5. **§1 Read first: absolute paths, line ranges, one reason each.** Open
@@ -142,7 +147,8 @@ the line, so the IC never reads that a STOP 1 holds.
    once on origin/main first; `on main` is what it printed. The pass
    line is `exit N` and quoted strings only, as in a spec's Checks.
 2. **CHAIN without the spec step, the freeze step and STOP 1.** The IC's
-   first report is STOP 2 "ready for push".
+   first report is STOP 2 "ready for push". The review step stays, as
+   step 4, before `ready, merge`: a chore's PR gets review comments too.
 3. **MODE, OPEN, §3 and §6 without the spec.** MODE: STOP 2 is a report,
    no hold. OPEN: `none`. §3: the IC settles each unknown with a DR.
    §6: STOP 2 "ready for push" only.
@@ -184,6 +190,8 @@ as for a rung.
 - A §2 `one-way` block missing an act of the brief's `one-way` field
   or of the profile's `one-way` line, or two acts on one line.
 - A CHAIN freeze step with no `--approved <sha>`.
+- A CHAIN with no `review` step, or one that holds the IC for the
+  owner's word before a two-way reply.
 - A chore launched before `freeze-rules.sh --chore` ran, or a chore's
   CHAIN with a spec step or STOP 1.
 - A constraint block as prose: four facts in one paragraph, no source.

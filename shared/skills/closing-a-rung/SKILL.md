@@ -84,7 +84,10 @@ to lead-1 that carries it opens with the same header line.
    draft PR read `IC, at green receipt <time>`, or `IC, red lines <n> overridden
    by the owner <time>` when the owner overrode a red gate line (one row per
    override, its reason in DECIDED); marking the PR ready reads
-   `owner's word <time>`. Nothing here is new to the owner. No rows: `none`.
+   `owner's word <time>`. A review fix DR reads
+   `IC, review comment by <reviewer> <date>` and a reply DR reads
+   `IC, reply posted <time>`, each with lead-1's `review` line
+   (`foundations/pr-comments.md`). Nothing here is new to the owner. No rows: `none`.
 5b. **NUMBERS, the rung's counts, two lines at most.** `DRs n
    (one-way n, with the word n) · jev rework n · rework items n (crossed a
    line n, claim false n, better path n) · rework rounds n · cards n ·
@@ -105,6 +108,10 @@ to lead-1 that carries it opens with the same header line.
    file and line, a test, or a quoted output. A lesson
    without evidence is an opinion. Root cause A in the retro was a false
    pass; every `got lucky` row is a gate that nearly missed.
+   One row per review comment that was right about a wrong result:
+   `went wrong`, or `missing guardrail` when a check would have caught
+   it; the evidence is the comment and the fix commit. The precedent
+   sweep then carries what the team's review caught.
 7. **OWED, one row per item this rung leaves behind.** ITEM | OWNER | STATE.
    The owner is a ticket id, a team, or `owner` (to decide); never `unowned`
    without a row asking the owner to assign it. State is `filed <date>`,

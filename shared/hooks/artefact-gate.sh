@@ -60,7 +60,7 @@ real(){ python3 -c 'import os, sys; print(os.path.realpath(sys.argv[1]))' "$1" 2
 shopt -s nocasematch   # DECISION-RECORD.md and decision-record.md are one file on macOS
 rp="$p"; RR="$RECORDS"
 case "${p##*/}" in
-  rules.md|gate.md|frozen.sha256|stop1.log|*-pre-*.md|decision-record.md|evidence.md|close.md|*-jev-*.json|handoff.md|ic-sessions.log) rp="$(real "$p")"; RR="$(real "$RECORDS")" ;;
+  rules.md|gate.md|frozen.sha256|stop1.log|*-pre-*.md|decision-record.md|evidence.md|close.md|*-jev-*.json|handoff.md|ic-sessions.log|replies-posted.log) rp="$(real "$p")"; RR="$(real "$RECORDS")" ;;
   *) [ -L "$p" ] && { rp="$(real "$p")"; RR="$(real "$RECORDS")"; } ;;
 esac
 if [ "$ROLE" = "ic" ]; then
@@ -80,9 +80,9 @@ if [ "$ROLE" = "ic" ]; then
           case "${rp%/*}" in */receipts) ;; *)
             deny "FROZEN: $p is frozen. The freeze writes rules.md, gate.md and frozen.sha256 on \"spec ok\", the message gate writes stop1.log when STOP 1 passes, and gate-run, the dr-check hook, the STOP gate and the push refuse once a file no longer matches frozen.sha256. An IC never writes them, nor a *-pre-*.md copy. A rule or a gate line that must change is a card to lead-1 (decision-card.md); lead-1 amends the file and re-hashes it with shared/amend-frozen.sh." ;;
           esac ;;
-        handoff.md|ic-sessions.log)
+        handoff.md|ic-sessions.log|replies-posted.log)
           case "${rp%/*}" in */receipts) ;; *)
-            deny "HANDOFF: $p is lead-1's handoff or the hooks' ic-sessions.log. An IC never writes either: the handoff holds the CHAIN and, for a chore, the Checks lead-1 froze, and ic-sessions.log is how the chore freeze knows an IC has worked on the record. A step or a check that must change is a card to lead-1 (decision-card.md)." ;;
+            deny "HANDOFF: $p is lead-1's handoff or a log the hooks keep (ic-sessions.log, replies-posted.log). An IC never writes one: the handoff holds the CHAIN and, for a chore, the Checks lead-1 froze, and ic-sessions.log is how the chore freeze knows an IC has worked on the record. A step or a check that must change is a card to lead-1 (decision-card.md)." ;;
           esac ;;
         decision-record.md|evidence.md)
           case "${rp%/*}" in */receipts) ;; *)

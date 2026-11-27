@@ -15,6 +15,7 @@ ONE-WAY  stop and ask before:
   write to a shared warehouse, schema, table, job or workspace       [standing]
   create, start or resize anything that keeps billing after the command returns: a cluster, a warehouse or SQL endpoint, a job schedule, a subscription or paid plan   [standing]
   write to a ticket, a wiki page, a chat channel, or the body of a PR marked ready   [standing]
+  post a pull request comment or reply that commits to a one-way act or to work outside the rung   [standing]
   change a DECIDED row or come back to a REJECTED row                [standing]
   any act only the owner can take                                    [standing]
 

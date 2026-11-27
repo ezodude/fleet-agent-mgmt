@@ -9,6 +9,10 @@ owner holds core: guardrails not gates, one-way and two-way decisions.
 This list holds for rungs whose handoff is written from 2026-10-13. A rung
 already running keeps its frozen `rules.md` and `gate.md`.
 
+The line on pull request comments and replies is in `rules.md` for freezes
+from 2026-11-27. The two Jev standing questions carry the same rule and
+change for every rung at once, running or new.
+
 ## The standing list, expanded into every rung's rules.md at the freeze
 
 Plain one-line rules, one act per line, written for a decision model that
@@ -28,6 +32,7 @@ ONE-WAY  stop and ask before:
   write to a shared warehouse, schema, table, job or workspace       [standing]
   create, start or resize anything that keeps billing after the command returns: a cluster, a warehouse or SQL endpoint, a job schedule, a subscription or paid plan   [standing]
   write to a ticket, a wiki page, a chat channel, or the body of a PR marked ready   [standing]
+  post a pull request comment or reply that commits to a one-way act or to work outside the rung   [standing]
   change a DECIDED row or come back to a REJECTED row                [standing]
   any act only the owner can take                                    [standing]
 ```
@@ -59,6 +64,11 @@ it may not remove or soften a standing one. A later change goes through
   push-gate.sh  on every `git push` and `gh pr create`: the five push conditions
                 below, denied on a miss; `gh pr merge` denied always; `gh pr ready`
                 denied unless the newest DR has an `owner` line (shared/hooks/push-gate.sh)
+                REPLY GATE, on every comment or reply post (`gh pr comment`, `gh pr review`,
+                a `gh api` comment write): a record folder, the newest DR or UAT jev line
+                not `stop and ask` or `rework`, no fleet path or name in the text; the
+                newest entry is the entry for this post, names the same pull request and
+                let no post through before; an approval or a request for changes never
   dr-check.sh   on every decision record entry: the standing list as two questions
                 (standing-1 outside the worktree, standing-2 writes where others read)
                 plus one per spec line. A yes on a one-way line with no `owner` line
@@ -69,6 +79,11 @@ it may not remove or soften a standing one. A later change goes through
                 others read; push-gate.sh holds their five conditions. A push to main or
                 the default branch, a force push, marking ready, merging, deploying, and
                 a ticket, wiki or chat write stay yes
+                A fix report, an answer or a question posted on the rung's own PR is not a
+                write where others read; a comment on any other PR stays yes. A comment or
+                reply entry is asked a third question, standing-3: a reply that commits to
+                a one-way act or to out-of-rung work (a follow-up ticket, a later PR, a
+                new feature, another repo) is yes
   lead-1        in the audit after the push: a one-way act with no
                 owner's word in the record is the owner's card, always
 ```
@@ -81,7 +96,7 @@ doc not yet published. The IC decides, records it and continues. The
 `undo` line of the entry is the test: if it cannot be written in one
 line, the act is one-way and the IC stops.
 
-Three acts reach past the worktree and are still two-way, each only on
+Four acts reach past the worktree and are still two-way, each only on
 its conditions. A miss on any condition makes the act one-way: stop, ask.
 
 ```
@@ -98,6 +113,17 @@ its conditions. A miss on any condition makes the act one-way: stop, ask.
     5  the PR opens as a draft (`gh pr create --draft`), body from the spec summary
   one DR for the push, one for the PR; each names the receipt; no `owner` line.
   Marking the PR ready, merging and closing it stay the owner's word.
+
+  reply to a review comment on the rung's own pull request, all required:
+    1  the PR is the rung's own, opened from the handoff's BRANCH
+    2  the reply is a fix report (it names the commit), an answer with its
+       evidence, or a question
+    3  it commits to no act on the ONE-WAY list and to no work outside the rung
+    4  no fleet path or name in the text
+  one DR per reply, no `owner` line; undo is the one command that deletes the
+  comment. A review fix is a new commit on BRANCH at a green receipt, a plain
+  push, under the five push conditions. This holds before and after the PR is
+  marked ready. The steps are in foundations/pr-comments.md.
 
   deploy or run e2e from the rung's own branch to the project's sandbox:
     the sandbox is the `sandbox` line of the profile and nothing else: an

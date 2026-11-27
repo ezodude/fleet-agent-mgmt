@@ -22,6 +22,7 @@ SKILLS IN FORCE ($NAME, IC; hooks enforce these, a gate bounces the write or the
   a file under docs/adr/ or */adr/                             writing-an-adr
   a file under */specs/                                        writing-a-design-spec
   the close report, a file ending -close.md or a turn opening "close · "   closing-a-rung
+  a review comment on the rung's own PR   superpowers:receiving-code-review, then foundations/pr-comments.md: one DR per fix and per reply; a one-way or out-of-rung reply is an ask in this pane
   the rung's record folder ~/.fleet-agent-mgmt/records/<project>/<lane>-r<n>/:
     decision-record.md (a DR before any choice the plan left open, a UAT entry, a one-way act)   recording-a-decision
     evidence.md (every run a report or a DR rests on)         recording-evidence

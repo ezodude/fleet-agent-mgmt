@@ -80,3 +80,25 @@ ATL-42 DR5 · task 5 · 2026-09-16 14:20 · atlas-ic
   evidence    E7
   review      -
   jev         continue, standing-1 with the owner's word (mark ready) · jev-1.13.0
+
+ATL-42 DR6 · review · 2026-09-17 09:12 · atlas-ic
+  plan        7 "answer each review comment on the PR: fix or reply, one DR each"
+  question    review comment 2101 says the retry cap is a literal in retry.py; is it right?
+  decided     fix review comment 2101 on PR #88: retry cap read from config, commit d4e5f6a
+  instead of  reply that the literal stays: the spec's Decided row 1 fixes the count, not where it is read
+  because     retry.py line 41 holds the literal 3; settings.py line 12 already has RETRY_CAP = 3 [E10]
+  undo        git revert d4e5f6a
+  evidence    E10
+  review      -
+  jev         continue, max yes 0.04 · jev-1.13.0
+
+ATL-42 DR7 · review · 2026-09-17 09:31 · atlas-ic
+  plan        7 "answer each review comment on the PR: fix or reply, one DR each"
+  question    -
+  decided     reply in thread 2101 on PR #88: fixed in d4e5f6a, the cap is read from config
+  instead of  -
+  because     gate receipt 2026-09-17-0928 at HEAD d4e5f6a, 0 red; d4e5f6a is on origin [E11]
+  undo        gh api -X DELETE repos/acme/atlas/pulls/comments/2102
+  evidence    E11
+  review      -
+  jev         continue, max yes 0.06 · jev-1.13.0

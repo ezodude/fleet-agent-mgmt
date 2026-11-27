@@ -919,12 +919,12 @@ def bash_write(cmd, records):
             re.search(r"\bcd\s+[^;&|]*\.claude", flat) and re.search(r"(^|[^&\d])>>?\|?\s*(?!/dev/null|&)", flat))
         if tool or into:
             return "logs"
-    strict = re.search(r"frozen\.sha256|stop1\.log|ic-sessions\.log|\b(rules|gate)-pre-[^\s/'\"]*\.md", cmd)
+    strict = re.search(r"frozen\.sha256|stop1\.log|ic-sessions\.log|replies-posted\.log|\b(rules|gate)-pre-[^\s/'\"]*\.md", cmd)
     loose = re.search(r"\b(rules|gate|handoff)\.md\b", cmd) and any(
         x and x in cmd for x in (".fleet-agent-mgmt", records, "FLEET_RECORDS"))
     if not (strict or loose):
         return ""
-    into = re.search(r">>?\|?\s*['\"]?[^\s;|&'\"]*(frozen\.sha256|stop1\.log|ic-sessions\.log|rules\.md|gate\.md|handoff\.md|"
+    into = re.search(r">>?\|?\s*['\"]?[^\s;|&'\"]*(frozen\.sha256|stop1\.log|ic-sessions\.log|replies-posted\.log|rules\.md|gate\.md|handoff\.md|"
                      r"-pre-[^\s/'\"]*\.md)", cmd)
     return "write" if tool or into else ""
 

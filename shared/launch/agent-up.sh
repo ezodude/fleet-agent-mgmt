@@ -3,7 +3,14 @@
 # detached tmux session if it isn't already running; `agent-up.sh --all` does
 # the same for every roster row. Safe to run any time, by anyone (human, Lead,
 # or Tech Lead). The roster's fenced `fleet` block is the single source.
-# Row format: name TAB directory [TAB extra-claude-flags]. Model policy:
+# Row format: name TAB directory [TAB extra-claude-flags]. A second fenced
+# block, `reviewers`, holds one row per designated repo in the same format:
+# `agent-up.sh <name>` finds a name in the fleet block first, then there, and
+# launches a reviewers row on reviewer-settings.json (no hooks: a reviewer has
+# no rung record, no gate and no STOP chain, and every fleet hook reads it as
+# solo because it is not a fleet row). `--all` starts fleet rows only: a
+# reviewer is idle until lead-1 hands it a pull request, and is launched by
+# name then. A name in both blocks is refused. Model policy:
 # lead-1 and ICs both run
 # claude-opus-5-5, the lead at high effort and ICs at medium, no advisor. The
 # model and effort live in the --settings file for each role, never on the
@@ -21,7 +28,8 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 ROSTER="$FLEET_HOME/roster.md"
 IC_SETTINGS="$FLEET_REPO/shared/launch/ic-settings.json"
 LEAD_SETTINGS="$FLEET_REPO/shared/launch/lead-settings.json"
-NAME="${1:?usage: agent-up.sh <name>|--all [--resume | --resume-id <id>] [--no-advisor] [--model <id>]}"
+REVIEWER_SETTINGS="$FLEET_REPO/shared/launch/reviewer-settings.json"
+NAME="${1:?usage: agent-up.sh <fleet or reviewer name>|--all (fleet rows only) [--resume | --resume-id <id>] [--no-advisor] [--model <id>]}"
 # --resume: continue the agent's most recent conversation instead of starting
 # a fresh one; the transcript is kept and the hooks and settings on the launch
 # line load fresh. Used to pick up hooks added after a session started.
@@ -62,6 +70,7 @@ command -v tmux >/dev/null || { echo "tmux not found (brew install tmux)"; exit 
 command -v claude >/dev/null || { echo "claude not found on PATH"; exit 1; }
 
 rows() { awk '/^```fleet/{f=1;next} /^```/{f=0} f && NF>=2' "$ROSTER"; }
+reviewer_rows() { awk '/^```reviewers/{f=1;next} /^```/{f=0} f && NF>=2' "$ROSTER"; }
 
 # Newest transcript in the agent's project dir, as a session id. Claude Code
 # keys the dir by the cwd with every non-alphanumeric character turned into
@@ -83,8 +92,9 @@ latest_session() {
 }
 
 launch() {
-  local n="$1" dir="$2" extra="${3:-}" model_flags resume_flags="" verb="launched"
-  local settings; if [ "$n" = "lead-1" ]; then settings="$LEAD_SETTINGS"; else settings="$IC_SETTINGS"; fi
+  local n="$1" dir="$2" extra="${3:-}" role="${4:-fleet}" model_flags resume_flags="" verb="launched"
+  local settings; if [ "$role" = "reviewer" ]; then settings="$REVIEWER_SETTINGS"
+  elif [ "$n" = "lead-1" ]; then settings="$LEAD_SETTINGS"; else settings="$IC_SETTINGS"; fi
   model_flags="--settings $(printf '%q' "$settings")"
   # A resumed session keeps the model saved in its transcript and ignores the
   # settings file's `model`; only a launch-line --model outranks it (Claude
@@ -123,8 +133,11 @@ if [ "$NAME" = "--all" ]; then
 fi
 
 ROW="$(rows | awk -F'\t' -v n="$NAME" '$1==n {print; exit}')"
+RROW="$(reviewer_rows | awk -F'\t' -v n="$NAME" '$1==n {print; exit}')"
+[ -z "$ROW" ] || [ -z "$RROW" ] || { echo "$NAME is in both the fleet block and the reviewers block of $ROSTER: keep one row"; exit 1; }
+ROLE="fleet"; [ -n "$ROW" ] || { ROW="$RROW"; ROLE="reviewer"; }
 [ -n "$ROW" ] || { echo "unknown agent: $NAME (not in $ROSTER)"; exit 1; }
 DIR="$(printf '%s' "$ROW" | cut -f2)"
 EXTRA="$(printf '%s' "$ROW" | cut -f3- -s)"
 [ "$EXTRA" = "$DIR" ] && EXTRA=""
-launch "$NAME" "$DIR" "$EXTRA"
+launch "$NAME" "$DIR" "$EXTRA" "$ROLE"

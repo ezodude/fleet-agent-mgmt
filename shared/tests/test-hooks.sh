@@ -137,6 +137,13 @@ check "awaiting ic: a key fault alone does not print the awaiting rule" "$(print
 eval "$(sed -n '/^shape() {$/,/^}$/p' "$GATE")"
 printf '```state\nawaiting: test-ic: x\n```\n' > "$T/s-noroster.md"
 check "awaiting shape(): no roster, a name faults and names the roster" "$(FLEET_ROSTER="$T/none.md" shape "$T/s-noroster.md" ic | grep -c "(no roster names read from $T/none.md)$")" 1
+# a reviewer (the roster's ```reviewers block) is a name lead-1 may wait on; a name in neither block still faults
+printf '**owner: Sam** (x)\n\n```fleet\nlead-1\t/x\natlas-ic-1\t/a\n```\n\n```reviewers\natlas-reviewer\t/r\n```\n' > "$T/roster-rev.md"
+printf '```state\nawaiting: atlas-reviewer: the report on atlas PR #91\n```\n' > "$T/s-rev.md"
+check "awaiting shape(): a name from the reviewers block passes, lead and ic" "$(FLEET_ROSTER="$T/roster-rev.md" shape "$T/s-rev.md" lead | grep -c .):$(FLEET_ROSTER="$T/roster-rev.md" shape "$T/s-rev.md" ic | grep -c .)" "0:0"
+check "awaiting shape(): the same line faults on a roster with no reviewers block" "$(shape "$T/s-rev.md" lead | grep -c '"awaiting" opens "atlas-reviewer: ')" 1
+printf '```state\nawaiting: orbit-reviewer: the report\n```\n' > "$T/s-rev2.md"
+check "awaiting shape(): a reviewer not on the roster faults; a fleet name still passes" "$(FLEET_ROSTER="$T/roster-rev.md" shape "$T/s-rev2.md" lead | grep -c '"awaiting" opens "orbit-reviewer: '):$(printf '```state\nawaiting: atlas-ic-1: STOP 2\n```\n' > "$T/s-rev3.md"; FLEET_ROSTER="$T/roster-rev.md" shape "$T/s-rev3.md" lead | grep -c .)" "1:0"
 # the owner's name comes from the roster's **owner: <name>** line, not from the gate
 printf '**owner: Robin** (x)\n\n```fleet\nlead-1\t/x\n```\n' > "$T/roster-robin.md"
 printf '```state\nawaiting: lead-1: S5; Robin: merge\n```\n' > "$T/s-robin.md"

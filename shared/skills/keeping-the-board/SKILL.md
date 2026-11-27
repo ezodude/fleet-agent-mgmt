@@ -1,6 +1,6 @@
 ---
 name: keeping-the-board
-description: "Use when the lead session writes or rewrites its board page (checks/lead-1/board.md), and at every event that creates or closes a piece of work: a ticket filed by any path, a brief ok'd, an IC launched, a close report accepted, an IC that cannot move, the owner's \"done\" on a task with no IC. Lead-only."
+description: "Use when the lead session writes or rewrites its board page (checks/lead-1/board.md), and at every event that creates or closes a piece of work: a ticket filed by any path, a brief ok'd, an IC launched, a close report accepted, an IC that cannot move, the owner's \"done\" on a task with no IC, the owner's \"review #N\" on a team pull request and the report and close that follow. Lead-only."
 ---
 
 # Keeping the board
@@ -35,6 +35,9 @@ Write the row at the moment the event happens, not at the next page refresh.
   an IC is launched                                  the next row moves to running
   an IC cannot move, or the lead flags it            the running row gains · red: <why>
   the owner says "done" on a task with no IC         done today row; its next or running row goes
+  the owner says "review #N"                         <repo> PR #N review · <title> · where: <repo>-reviewer      running
+  a review report lands                              <repo> PR #N · <n> core problems, drafts ready, you post them · say: commands (prints the gh commands to paste) · where: <repo>-reviewer pane   yours
+  the PR merges and close.md is written              done today row; its running row goes
   anything that needs the owner's word               yours, with say: and where:
 ```
 

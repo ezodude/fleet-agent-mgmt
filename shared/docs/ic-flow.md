@@ -97,7 +97,7 @@ each. The gate block holds outcomes, never commands: the IC turns each
     GATE BLOCK   proves done <outcome> · pass <line, in outcome words> · on failure · owner's word · record <folder>
     record       $FLEET_HOME/records/<project>/<lane>-r<n>/
     mode         autonomous | per-task STOPs, from <lane> r<n> close
-    CHAIN        1. writing-a-design-spec, STOP 1 · 2. build · 3. gate-run, STOP 2, a report · 4. push, draft PR · 5. closing-a-rung
+    CHAIN        1. writing-a-design-spec, STOP 1 · 2. build · 3. gate-run, STOP 2, a report · 4. push, draft PR · 5. review comments, no STOP · 6. closing-a-rung
 ```
 
 The MODE line is the one lever on how much the IC does alone.
@@ -229,19 +229,20 @@ its line numbers, since the question keys are built from them:
   16    write to a shared warehouse, schema, table, job or workspace       [standing]
   17    create, start or resize anything that keeps billing after the command returns: … (cut here)   [standing]
   18    write to a ticket, a wiki page, a chat channel, or the body of a PR marked ready   [standing]
-  19    change a DECIDED row or come back to a REJECTED row                [standing]
-  20    any act only the owner can take                                    [standing]
-  21
-  22  REJECTED  do not come back to:
-  23    retry forever                        [INC-118, 2026-08-29: would have looped 14 hours]
-  24    a retry queue table in the warehouse [ATL-42: no new tables for this]
-  25
-  26  ONE-WAY  stop and ask before:
-  27    run anything against the shared dev database             [ATL-42]
-  28
-  29  DECIDED  never change:
-  30    1  retry 3 times, backoff 1m 5m 15m, then alert       retry.py, new          [product owner, ATL-42, 2026-09-14]
-  31    2  nightly imports only; the CLI import is unchanged   scheduler.py, modify   [ticket DoD]
+  19    post a pull request comment or reply that commits to a one-way act or to work outside the rung   [standing]
+  20    change a DECIDED row or come back to a REJECTED row                [standing]
+  21    any act only the owner can take                                    [standing]
+  22
+  23  REJECTED  do not come back to:
+  24    retry forever                        [INC-118, 2026-08-29: would have looped 14 hours]
+  25    a retry queue table in the warehouse [ATL-42: no new tables for this]
+  26
+  27  ONE-WAY  stop and ask before:
+  28    run anything against the shared dev database             [ATL-42]
+  29
+  30  DECIDED  never change:
+  31    1  retry 3 times, backoff 1m 5m 15m, then alert       retry.py, new          [product owner, ATL-42, 2026-09-14]
+  32    2  nightly imports only; the CLI import is unchanged   scheduler.py, modify   [ticket DoD]
 ```
 
 | RULE LINE           | ✗ WEAK                                        | ✓ STRONG                                                      | WHY                                                                                   |
@@ -295,22 +296,32 @@ stop and ask or rework.
 
 Every rung line of rules.md becomes one question, keyed by kind and line
 number. The standing lines become two questions, standing-1 (outside
-the worktree) and standing-2 (writes where others read). Two standing lines
+the worktree) and standing-2 (writes where others read). Both carve out a
+reply on the IC's own pull request that reports a fix, answers with
+evidence or asks a question: the IC posts it on a `continue`. A comment on
+any other pull request still fires them. An entry that is a comment or
+reply is asked a third, standing-3: does the reply commit to a one-way act
+or to work outside the rung (a merge, a deploy, a follow-up ticket, a later
+pull request, a new feature, a change in another repo)? A yes is stop and
+ask (line 19). Jev reads the entry, not the handoff: it cannot tell that a
+review fix grows the rung's scope, and lead-1's second REVIEW entry holds
+that. Two standing lines
 have no question of their own: "change a DECIDED row or come back to a
 REJECTED row" is covered by the DECIDED and REJECTED questions, which
 return rework rather than stop and ask; "any act only the owner can take"
 is not asked at all. For the rules.md above, the seven keys are standing-1,
-standing-2, rejected-23, rejected-24, oneway-27, decided-30, decided-31.
+standing-2, rejected-24, rejected-25, oneway-28, decided-31, decided-32; a
+reply entry has an eighth, standing-3.
 
 The verdict, exactly as the hook writes it on the entry:
 
 | TOP SCORE       | LINE KIND                  | JEV LINE WRITTEN ON THE ENTRY                                       | THE IC                                                           |
 |-----------------|----------------------------|---------------------------------------------------------------------|------------------------------------------------------------------|
 | under 0.65      | any                        | continue, max yes 0.31 · jev-1.13.0                                 | acts                                                             |
-| 0.65 up to 0.77 | any                        | continue, read decided-30 0.70 · jev-1.13.0                         | reads that rules.md line, then acts                              |
-| 0.77 or more    | ONE-WAY or standing        | stop and ask, oneway-27 0.96 (<rule text>) · jev-1.13.0             | asks in the pane; the next entry carries the word on `owner`     |
-| 0.77 or more    | DECIDED or REJECTED        | rework, decided-30 0.93 (<rule text>) · jev-1.13.0                  | does not act; a new entry with a different `decided`, or a card  |
-| 0.77 or more    | any, entry has `owner`     | continue, oneway-27 with the owner's word (<rule text>) · jev-1.13.0 | acts; lead-1 lists it at review and in CHANGED                  |
+| 0.65 up to 0.77 | any                        | continue, read decided-31 0.70 · jev-1.13.0                         | reads that rules.md line, then acts                              |
+| 0.77 or more    | ONE-WAY or standing        | stop and ask, oneway-28 0.96 (<rule text>) · jev-1.13.0             | asks in the pane; the next entry carries the word on `owner`     |
+| 0.77 or more    | DECIDED or REJECTED        | rework, decided-31 0.93 (<rule text>) · jev-1.13.0                  | does not act; a new entry with a different `decided`, or a card  |
+| 0.77 or more    | any, entry has `owner`     | continue, oneway-28 with the owner's word (<rule text>) · jev-1.13.0 | acts; lead-1 lists it at review and in CHANGED                  |
 | no score        | -                          | stop and ask, no check (no key · error <Type> · missing answers <keys>) | asks in the pane; the IC never grades the entry itself     |
 | no rules        | -                          | no rules.md · no rules                                              | setup fault: the freeze did not run, or rules.md is malformed    |
 
@@ -366,13 +377,13 @@ in rules.md order.
     "undo": "git revert <sha>"
   },
   "questions": {
-    "decided-30": {
+    "decided-31": {
       "type": "noul",
       "instructions": "It was decided earlier: retry 3 times, backoff 1m 5m 15m, then alert. Does the `decided` field go against that? Saying the same thing in other words or units does not count as going against it.",
       "criteria": { "true": "it goes against the decision",
                     "false": "it keeps to it, restates it, or concerns something the row does not mention" }
     },
-    "oneway-27": {
+    "oneway-28": {
       "type": "noul",
       "instructions": "Is the agent about to run anything against the shared dev database? Judge from the `decided` field alone.",
       "criteria": { "true": "the decided field is this act", "false": "it is a different act" }
@@ -381,8 +392,8 @@ in rules.md order.
 }
 ```
 
-The key is the kind and the rules.md line number: decided-30 is line 30 of
-the rules.md above, oneway-27 line 27. The question text is the rule's
+The key is the kind and the rules.md line number: decided-31 is line 31 of
+the rules.md above, oneway-28 line 28. The question text is the rule's
 first cell, nothing else. ONE-WAY, standing and REJECTED questions say
 "judge from the `decided` field alone"; the DECIDED question does not, so
 plan, instead of and because can move a DECIDED score.
@@ -390,7 +401,7 @@ plan, instead of and because can move a DECIDED score.
 The answer, and the shape a stub file takes for `JEV_STUB`:
 
 ```json
-{ "model": "jev-STUB", "answers": { "decided-30": { "type": "noul", "noul": 0.93 }, "oneway-27": { "type": "noul", "noul": 0.02 } } }
+{ "model": "jev-STUB", "answers": { "decided-31": { "type": "noul", "noul": 0.93 }, "oneway-28": { "type": "noul", "noul": 0.02 } } }
 ```
 
 ### Five entries, five verdicts
@@ -401,16 +412,16 @@ code's.
 
 | ENTRY | DECIDED                                                                                    | TOP KEY, SCORE   | JEV LINE WRITTEN ON THE ENTRY                                                                       | THE IC                                                 |
 |-------|--------------------------------------------------------------------------------------------|------------------|-----------------------------------------------------------------------------------------------------|--------------------------------------------------------|
-| DR1   | a new integer column import_runs.attempts, default 1, written after every attempt          | rejected-24 0.31 | continue, max yes 0.31 · jev-STUB                                                                   | acts                                                   |
-| DR2   | one alert per file, keyed on the file name; a second failing file gets its own alert       | decided-30 0.70  | continue, read decided-30 0.70 · jev-STUB                                                           | reads line 30, sees the retry count is untouched, acts |
-| DR3   | large files retry 5 times with backoff 1m 5m 15m 30m 60m before the alert                  | decided-30 0.93  | rework, decided-30 0.93 (retry 3 times, backoff 1m 5m 15m, then alert) · jev-STUB                   | does not act; DR4 with a different decided, or a card  |
-| DR4   | run the dry run against the shared dev database, so the alert reaches the real ops channel | oneway-27 0.96   | stop and ask, oneway-27 0.96 (run anything against the shared dev database) · jev-STUB              | asks in the pane, quoting line 27; waits               |
-| DR5   | the same as DR4, with an `owner` line quoting the word and the time                        | oneway-27 0.96   | continue, oneway-27 with the owner's word (run anything against the shared dev database) · jev-STUB | acts; lead-1 lists it at review and in CHANGED         |
+| DR1   | a new integer column import_runs.attempts, default 1, written after every attempt          | rejected-25 0.31 | continue, max yes 0.31 · jev-STUB                                                                   | acts                                                   |
+| DR2   | one alert per file, keyed on the file name; a second failing file gets its own alert       | decided-31 0.70  | continue, read decided-31 0.70 · jev-STUB                                                           | reads line 30, sees the retry count is untouched, acts |
+| DR3   | large files retry 5 times with backoff 1m 5m 15m 30m 60m before the alert                  | decided-31 0.93  | rework, decided-31 0.93 (retry 3 times, backoff 1m 5m 15m, then alert) · jev-STUB                   | does not act; DR4 with a different decided, or a card  |
+| DR4   | run the dry run against the shared dev database, so the alert reaches the real ops channel | oneway-28 0.96   | stop and ask, oneway-28 0.96 (run anything against the shared dev database) · jev-STUB              | asks in the pane, quoting line 27; waits               |
+| DR5   | the same as DR4, with an `owner` line quoting the word and the time                        | oneway-28 0.96   | continue, oneway-28 with the owner's word (run anything against the shared dev database) · jev-STUB | acts; lead-1 lists it at review and in CHANGED         |
 
 Why DR1 scores on the rejected line and still continues: a new column is
 near "a retry queue table in the warehouse" in words, but a column on an
 existing table is something else, and 0.31 is under BAND. Why DR2 sits in
-the band: it touches the alert, which line 30 also names, without changing
+the band: it touches the alert, which line 31 also names, without changing
 the retry count; the IC reads line 30, confirms, acts. Why DR3 is rework:
 five retries is a different number from three, and "other words or units"
 does not cover a different number.
@@ -584,8 +595,8 @@ seven-line profile in $FLEET_HOME/profiles/<project>.md.
 | WHAT YOU SEE                                   | WHERE TO LOOK                                                                                                   |
 |------------------------------------------------|-----------------------------------------------------------------------------------------------------------------|
 | the IC asks in the pane, quoting a rule        | rules.md, the line it quotes; the receipt names the score                                                       |
-| "rework, decided-30" and the IC re-decides     | receipts/<stamp>-jev-DR<n>.json, the DECIDED question and its score; `--explain` on a copy for every score      |
-| "stop and ask, no check (missing answers decided-30)" | the response in the receipt: Jev returned no score for that key; the entry is unscored and goes to the owner |
+| "rework, decided-31" and the IC re-decides     | receipts/<stamp>-jev-DR<n>.json, the DECIDED question and its score; `--explain` on a copy for every score      |
+| "stop and ask, no check (missing answers decided-31)" | the response in the receipt: Jev returned no score for that key; the entry is unscored and goes to the owner |
 | "stop and ask, no check (no key)"              | ~/.config/stop-triage/env (or JEV_ENV) has no `KEY=` line; the key is never printed; no receipt is written       |
 | "no rules.md"                                  | the freeze did not run at "spec ok"; no entry belongs before it; `--audit` names the entry                      |
 | "stop and ask, no check (rules.md or gate.md does not match frozen.sha256)" | a frozen file changed after the freeze; the receipt names which; lead-1 restores it or amends it with amend-frozen.sh |

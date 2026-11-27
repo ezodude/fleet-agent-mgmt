@@ -45,7 +45,8 @@ CHAIN  (in order, each a Skill call, none skipped; the brief was the brainstorm)
                    leaves open; recording-evidence on every run; on failure and SANDBOX as in §0; the word before ONE-WAY
   5  ready         shared/records/gate-run.sh, then STOP 2 "ready for push" report to lead-1   no hold
   6  push, PR      green receipt at HEAD, jev audit exit 0: push BRANCH, open a draft PR, one DR each, no word   no hold
-  7  ready, merge  lead-1 audits the record after the push; marking the PR ready on the owner's word in this pane
+  7  review        pr-watch.sh on the PR; each comment: superpowers:receiving-code-review as foundations/pr-comments.md; fix or reply, one DR each; the word only before a one-way or out-of-rung reply   no hold
+  8  ready, merge  lead-1 audits the record after the push; marking the PR ready on the owner's word in this pane
                    (one DR with the owner line); the owner merges; the IC never merges   -> closing-a-rung
   superpowers:verification-before-completion before STOP 1, STOP 2 and the push
 
@@ -121,6 +122,7 @@ line beside the actual output), stakes, options, unverified, files (stop file, e
 decision-record.md, the newest receipt). Rework from lead-1's audit after the push comes in this pane:
 new commits on BRANCH, the draft PR updates. Shape: `reporting-a-rung`. Cold-reader rule: the report is
 read by someone running a different ticket.
+Review comments on the PR are answered by the IC as foundations/pr-comments.md, with no STOP.
 
 # Chore variant (SKILL.md, "A chore: no spec, no STOP 1"). Delete this section
 # from a rung's handoff: a `## Checks` heading makes the record a chore's, and
@@ -142,7 +144,8 @@ CHAIN  (in order, each a Skill call, none skipped; lead-1 froze the Checks below
                    on every run; on failure as in §0; the word before ONE-WAY
   2  ready         shared/records/gate-run.sh, then STOP 2 "ready for push" report to lead-1   no hold
   3  push, PR      green receipt at HEAD, jev audit exit 0: push BRANCH, open a draft PR, one DR each, no word   no hold
-  4  ready, merge  the owner's word in this pane (one DR with the owner line); the owner merges   -> closing-a-rung
+  4  review        pr-watch.sh on the PR; each comment: superpowers:receiving-code-review as foundations/pr-comments.md; fix or reply, one DR each; the word only before a one-way or out-of-rung reply   no hold
+  5  ready, merge  the owner's word in this pane (one DR with the owner line); the owner merges   -> closing-a-rung
   superpowers:verification-before-completion before STOP 2 and the push
 
 ## Checks

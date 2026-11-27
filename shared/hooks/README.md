@@ -196,6 +196,17 @@ script resolves the role from the roster and exits 0 for a solo session.
                                              FROZEN GATE: the frozen files, the receipt's gate hash and
                                              the spec at HEAD, as at "ready for push"
   ic     gh pr ready                         the newest DR entry has an `owner` line quoting the word
+  ic     gh pr comment, gh pr review, gh api comment or reply write   a record folder; the newest DR or UAT
+                                             jev line is not stop and ask or rework; LEAK GATE on the reply
+                                             text. REPLY ENTRY GATE: the newest entry is the entry for this
+                                             post (`decided` opens `reply in thread <id> on PR #<n>` or
+                                             `post a comment on PR #<n>`, <n> the PR the command names), it
+                                             let no post through before (<record>/replies-posted.log, one
+                                             line per allowed post), and the command holds one post.
+                                             REVIEW GATE: an approval or a request for changes, always.
+                                             The hook does not prove the PR is the rung's own, nor that the
+                                             text is the one the entry describes: the standing questions
+                                             read the entry and lead-1's second REVIEW entry reads both
   ic     Bash naming a frozen file or act    FROZEN WRITE GATE: denied: amend-frozen, frozen.py amend or
                                              stop1-log, the chore freeze (freeze-rules with --chore once
                                              quotes are out, or chore_freeze), and a write form naming
@@ -275,6 +286,26 @@ DR_STANDING; one made with a stub, another endpoint or another DR_STANDING
 does not count. record-add.sh and dr_check.py run in the IC's shell, which can
 set those; the audit runs in the hook's environment, which it cannot.
 JEV_STUB_OK=1 makes stubbed receipts count, in the tests only.
+
+standing-1 and standing-2 of `dr_check.py` both carve out a reply on the IC's
+own pull request (a fix report, an answer with evidence, a question), as they
+do the push of its own branch: such an entry reads `continue` and the REPLY
+GATE lets the post through. A comment on any other pull request still fires
+them. What a reply commits to is a third question, standing-3, asked only of
+an entry that is a comment or reply: a merge, a deploy, a release, a force
+push, marking ready, a changed rule, a follow-up ticket, a later pull
+request, a new feature or a change in another repo fires it.
+
+The tests feed `dr_check.py` hand-written scores, so they pin the wording and
+the thresholds. What Jev answers is pinned by the reply calibration:
+`shared/tests/testdata/reply-calibration.tsv` holds real Jev scores for 31
+entries, two runs each, written by `shared/tests/reply-calibration.py --run`
+(the Jev key, a network call; not part of any suite). With no argument the
+script checks the recorded file, and test-skill-hooks.sh runs that: it fails
+when a standing question, CUT or BAND changed after the run. One known
+limit is recorded there and not checked: Jev reads the entry, not the
+handoff, so a review fix that grows the rung's scope reads `continue`.
+lead-1's second REVIEW entry holds that.
 
 The limits: the RECORD WRITE GATE reads the command line. A glob on the file
 name itself, a script file, a variable holding the name or `git apply

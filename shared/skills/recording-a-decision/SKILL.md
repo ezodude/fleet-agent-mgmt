@@ -1,6 +1,6 @@
 ---
 name: recording-a-decision
-description: Use when a fleet IC (AgentMgmt Lead and ICs) makes a choice the plan is silent on or leaves open, takes a one-way act on the owner's word, re-runs a red gate line, deploys to its sandbox, pushes its own branch or opens its draft PR, or acts on the owner's UAT feedback in its pane; and when lead-1 writes the review, its audit of the record after the push. The entry is written before the act. IC-facing; lead-1 reads it at the audit.
+description: Use when a fleet IC (AgentMgmt Lead and ICs) makes a choice the plan is silent on or leaves open, takes a one-way act on the owner's word, re-runs a red gate line, deploys to its sandbox, pushes its own branch or opens its draft PR, fixes or answers a review comment on its own PR, or acts on the owner's UAT feedback in its pane; and when lead-1 writes the review, its audit of the record after the push. The entry is written before the act. IC-facing; lead-1 reads it at the audit.
 ---
 
 # Recording a decision
@@ -65,6 +65,7 @@ before frozen.sha256 existed and is not checked.
                 each re-run of a red gate line after a fix inside the worktree: what was red, the fix, the receipt
                 each sandbox deploy or e2e run, numbered on `decided`: "sandbox 1 of 2", "sandbox 2 of 2"
                 the push of the rung's own branch, and the draft PR, one entry each, at a green receipt at HEAD
+                each fix made for a review comment, and each comment or reply posted on the rung's own PR, one entry each
   WRITE A UAT   the owner typed feedback in the pane and the IC acted on it (the two-way loop)
   DO NOT WRITE  a choice the plan already made; a line of code nobody would ask about; a rename
   lead-1 WRITES the REVIEW entry at its audit after the push, and the `review` line of each DR
@@ -82,6 +83,16 @@ A push or draft PR over a red receipt line needs one too: the owner types
 reads both, the typed line in this session's log and the quote here.
 A one-way act with no `owner` line is a breach, whatever the reason;
 it is always the owner's card.
+
+A review fix entry and a reply entry (`foundations/pr-comments.md`)
+carry no `owner` line when the reply is two-way: a fix report, an
+answer with its evidence, or a question, on the rung's own PR, before
+or after it is marked ready. `decided` names the PR, the comment id and
+what the reply says; `undo` is the one command that deletes the comment
+(for a fix, the revert of its commit). One entry per fix and one per
+post, each written before the act. A reply that commits to a one-way
+act or to work outside the rung needs the `owner` line: ask in this
+pane first, quoting the standing line.
 
 ## The entries
 
@@ -178,7 +189,14 @@ the answers and the verdict. Keys name the
 kind and the rules.md line: `oneway-19`, `decided-28`, `rejected-15`,
 `standing-1` (outside the worktree), `standing-2` (writes where others
 read); for both, the push of the rung's own branch and its draft PR are
-not, push-gate.sh holds them.
+not, push-gate.sh holds them. Both also carve out a reply on the rung's
+own PR that reports a fix, answers with evidence or asks a question; a
+comment on any other PR still fires. A comment or reply entry gets a
+third, `standing-3`: a reply that promises a merge, a deploy, a change
+to a decided rule or work outside the rung (a follow-up ticket, a later
+PR, a new feature, another repo) fires it. A reply entry's `decided`
+opens `reply in thread <id> on PR #<n>:` or `post a comment on PR #<n>:`;
+push-gate.sh lets one post through per such entry, on that PR only.
 
 ```
   jev  continue, max yes 0.08 · jev-1.13.0                  act
@@ -256,8 +274,9 @@ line as long as it is logged in the decision record.
 - `because` restating `decided` instead of naming a fact.
 - An `owner` line on a two-way entry (it reads as cover), or missing on
   marking a PR ready, a merge, a push to main or the default branch, a
-  force push, a deploy outside the sandbox, a third sandbox run or a
-  shared write.
+  force push, a deploy outside the sandbox, a third sandbox run, a
+  shared write or a reply that commits to a one-way act.
+- A reply posted before its DR, or two replies under one DR.
 - A push or draft PR entry whose `because` names no receipt, or a
   receipt that is not at HEAD or has a red line.
 - A third re-run of the same gate line, or a "sandbox 3 of 2".
@@ -282,6 +301,7 @@ line as long as it is logged in the decision record.
 
 `templates/decision-record.md` carries the invented lane atlas / ATL-42
 rung 1: the header, two two-way DRs, a UAT entry, the push and draft
-PR entries at a green receipt, lead-1's audit after the push, and a
-one-way DR with the owner's word (marking the PR ready). Copy the shape,
-replace every value.
+PR entries at a green receipt, lead-1's audit after the push, a
+one-way DR with the owner's word (marking the PR ready), and a review
+fix with its reply (DR6 and DR7, two-way, no `owner` line). Copy the
+shape, replace every value.

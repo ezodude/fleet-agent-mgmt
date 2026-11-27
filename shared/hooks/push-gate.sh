@@ -5,7 +5,9 @@
 # the push itself, so the rule does not rest on the IC's reading of it.
 # Acts on `git push` (also `git -C <dir> push`), `gh pr create`, `gh pr ready`
 # and `gh pr merge` (also with gh's -R/--repo flag, and a merge or ready
-# through `gh api`), in any segment of a compound command, wherever git or gh
+# through `gh api`), and on a comment or reply post (`gh pr comment`,
+# `gh pr review`, `gh issue comment`, a `gh api` comment, reply or review
+# write), in any segment of a compound command, wherever git or gh
 # stands in the segment (after `timeout`, `if ... then`, `!`, `xargs`), inside
 # `bash|sh|zsh -c` (any short-flag cluster with c), `eval`, `$(...)`, `<(...)`
 # and backticks. Denied when:
@@ -50,6 +52,38 @@
 #                  text (a body file is read from the act's dir; `-` is not read).
 #   gh pr merge    always: the owner merges.
 #   gh pr ready    the newest DR entry has no `owner` line quoting the word.
+#   gh pr comment, gh pr review, gh issue comment, a gh api comment write
+#                  REPLY GATE: no record folder for this IC; the newest DR or UAT
+#                  entry's jev line says "stop and ask" or "rework" (the entry for
+#                  the reply is written first, one per post); LEAK GATE on the text
+#                  of --body/-b, --body-file/-F and each `body=` field (the team
+#                  reads the reply on GitHub). A gh api call counts as a write when
+#                  its path is (pulls|issues)/<n>/comments, pulls/comments/<id>,
+#                  pulls/<n>/comments/<id>/replies, issues/comments/<id> or
+#                  pulls/<n>/reviews, or it names an add-comment or add-review
+#                  mutation, and it carries -f, -F, --field, --raw-field or --input,
+#                  or -X/--method other than GET; a plain GET is not read. No
+#                  receipt check, no audit, no network call: a reply moves no code.
+#                  A review fix is a push, held by the push conditions above; no
+#                  condition reads the pull request's state, so a push after the PR
+#                  is marked ready is checked as any other.
+#                  REVIEW GATE: `gh pr review --approve` or `--request-changes`
+#                  (-a, -r, or an APPROVE or REQUEST_CHANGES event through gh api):
+#                  always, an IC gives no verdict on a pull request.
+#                  REPLY ENTRY GATE: the newest entry is not the entry for this
+#                  post. Its `decided` line must open `reply in thread <id> on PR
+#                  #<n>` or `post a comment on PR #<n>`, with <n> the pull request
+#                  the command names (not compared when it names none: a bare
+#                  `gh pr comment`, a path holding only a comment id); the entry
+#                  let no post through before (<record>/replies-posted.log, one
+#                  line per allowed post, written by this hook); and the command
+#                  holds one post. A DELETE of a comment, the undo of a reply, is
+#                  not held to this.
+#                  Known limits: the hook does not prove the pull request is the
+#                  rung's own (standing-1 and standing-2 of dr_check.py ask that
+#                  of the entry), nor that the text posted is the text the entry
+#                  describes (standing-3 reads the entry's line, not the body).
+#                  lead-1's second REVIEW entry reads both.
 # message-gate.sh (c) and (d) run the same receipt and audit checks on the
 # "ready for push" report; this hook repeats them at the act.
 # Solo and lead: exit 0.
@@ -115,7 +149,7 @@ case "$fw" in
   chore) jq -n '{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"deny",permissionDecisionReason:"FROZEN WRITE GATE: this command runs the chore freeze (freeze-rules --chore). A chore'"'"'s rules.md, gate.md and frozen.sha256 are written by lead-1 from the handoff before launch, never by the IC. A check that must change is a card to lead-1 (decision-card.md)."}}'; exit 0 ;;
   act) jq -n '{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"deny",permissionDecisionReason:"FROZEN WRITE GATE: this command runs an amendment or writes stop1.log (amend-frozen, frozen.py amend or stop1-log). An amendment is lead-1'"'"'s act after a card to the owner, and stop1.log is written by the message gate when STOP 1 passes. Raise a card to lead-1 (decision-card.md)."}}'; exit 0 ;;
   logs) jq -n '{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"deny",permissionDecisionReason:"FROZEN WRITE GATE: this command names Claude Code'"'"'s session logs (~/.claude/projects/) with a write form (a redirect into them, tee, cp, mv, rm, ln, sed -i, or a python, perl, ruby or node run). The freeze reads the owner'"'"'s spec ok there; an IC never writes, copies or moves them. If the freeze cannot find the owner'"'"'s word, hold and ask the owner to type it in this pane or lead-1'"'"'s."}}'; exit 0 ;;
-  write) jq -n '{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"deny",permissionDecisionReason:"FROZEN WRITE GATE: this command names a frozen file (rules.md, gate.md, frozen.sha256, stop1.log or a *-pre-*.md copy in a record folder), the record'"'"'s handoff.md or ic-sessions.log with a write form (a redirect into it, tee, cp, mv, rm, ln, sed -i, or a python, perl, ruby or node run). The IC never writes them: the handoff is lead-1'"'"'s, ic-sessions.log is the hooks'"'"'. Read them with cat or grep. A rule or gate line that must change is a card to lead-1 (decision-card.md)."}}'; exit 0 ;;
+  write) jq -n '{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"deny",permissionDecisionReason:"FROZEN WRITE GATE: this command names a frozen file (rules.md, gate.md, frozen.sha256, stop1.log or a *-pre-*.md copy in a record folder), the record'"'"'s handoff.md, ic-sessions.log or replies-posted.log with a write form (a redirect into it, tee, cp, mv, rm, ln, sed -i, or a python, perl, ruby or node run). The IC never writes them: the handoff is lead-1'"'"'s, ic-sessions.log and replies-posted.log are the hooks'"'"'. Read them with cat or grep. A rule or gate line that must change is a card to lead-1 (decision-card.md)."}}'; exit 0 ;;
 esac
 printf '%s' "$cmd" | grep -Eq 'push|gh' || exit 0
 GATE_RUN="$FLEET_REPO/shared/records/gate-run.sh"
@@ -207,12 +241,28 @@ def gh(a, d, out):
             out.append(("merge", d, "-", "-", "-", "-"))
         elif re.search(r"markPullRequestReadyForReview", j):
             out.append(("ready", d, "-", "-", "-", "-"))
-    elif len(b) > 1 and b[0] == "pr" and b[1] in ("create", "ready", "merge"):
+        elif re.search(REPLY_PATH, j):
+            api_reply(b[1:], d, out)
+    elif len(b) > 1 and ((b[0] == "pr" and b[1] in ("create", "ready", "merge", "comment", "review"))
+                         or (b[0] == "issue" and b[1] == "comment")):
+        reply = b[1] in ("comment", "review")
         rest = b[2:]
         draft = any(x in ("--draft", "-d") for x in rest)
-        head, text = "-", {}
+        head, text, body = "-", {}, ("reply body" if reply else "PR body")
+        num, verdict, skip = "?", "-", False       # a reply: the pull request it names, and a review's verdict flag
         for k, x in enumerate(rest):
             nxt = rest[k+1] if k + 1 < len(rest) else None
+            if reply and skip:
+                skip = False
+            elif reply and x in ("--body", "-b", "--body-file", "-F"):
+                skip = True
+            elif b[1] == "review" and (x == "--approve" or re.match(r"^-[A-Za-z]*a[A-Za-z]*$", x)):
+                verdict = "approve"
+            elif b[1] == "review" and (x == "--request-changes" or re.match(r"^-[A-Za-z]*r[A-Za-z]*$", x)):
+                verdict = "request-changes"
+            elif reply and num == "?" and not x.startswith("-"):
+                m = re.match(r"^(?:\S*/(?:pull|issues)/)?(\d+)(?:[#?].*)?$", x)
+                num = m.group(1) if m else "?"
             if x in ("--head", "-H") and nxt is not None:
                 head = nxt
             elif x.startswith("--head="):
@@ -222,19 +272,86 @@ def gh(a, d, out):
             elif x.startswith("--title="):
                 text["PR title"] = x.split("=", 1)[1]
             elif x in ("--body", "-b") and nxt is not None:
-                text["PR body"] = nxt
+                text[body] = nxt
             elif x.startswith("--body="):
-                text["PR body"] = x.split("=", 1)[1]
+                text[body] = x.split("=", 1)[1]
             elif x in ("--body-file", "-F") or x.startswith("--body-file="):
                 f = x.split("=", 1)[1] if "=" in x else nxt
                 if f and f != "-":
                     try:
-                        text["PR body file " + f] = open(where(d, f), encoding="utf-8", errors="replace").read()
+                        text[body + " file " + f] = open(where(d, f), encoding="utf-8", errors="replace").read()
                     except OSError:
                         pass
+        if reply:   # a comment or reply post: the REPLY GATE reads its text, nothing else
+            out.append(("reply", d, verdict, num, "-", blob64(text)))
+            return
         head = head.split(":", 1)[-1] or "-"
-        blob = base64.b64encode(json.dumps(text).encode()).decode() if b[1] == "create" and text else "-"
+        blob = blob64(text) if b[1] == "create" else "-"
         out.append((b[1], d, "draft" if draft else "-", head, "-", blob))
+
+# a gh api path that holds a pull request comment, reply or review, or a mutation that adds one
+REPLY_PATH = (r"(pulls|issues)/\d+/comments|(pulls|issues)/comments/\d+|pulls/\d+/comments/\d+(/replies)?"
+              r"|pulls/\d+/reviews|add(Comment|PullRequestReview\w*)\b")
+FIELD = ("-f", "-F", "--field", "--raw-field")
+
+def blob64(text):
+    return base64.b64encode(json.dumps(text).encode()).decode() if text else "-"
+
+def api_reply(a, d, out):
+    # a write: a field or an input file, or a method other than GET. A plain GET (a read) adds no act.
+    method, fields, inputs, k = None, [], [], 0
+    while k < len(a):
+        x, nxt = a[k], (a[k+1] if k + 1 < len(a) else None)
+        if x in ("-X", "--method") and nxt is not None:
+            method = nxt; k += 2; continue
+        if x.startswith("--method="):
+            method = x.split("=", 1)[1]
+        elif re.match(r"^-X.+", x):
+            method = x[2:]
+        elif x in FIELD and nxt is not None:
+            fields.append((x, nxt)); k += 2; continue
+        elif x.startswith(("--field=", "--raw-field=")):
+            fields.append((x.split("=", 1)[0], x.split("=", 1)[1]))
+        elif re.match(r"^-[fF].+", x):
+            fields.append((x[:2], x[2:]))
+        elif x == "--input" and nxt is not None:
+            inputs.append(nxt); k += 2; continue
+        elif x.startswith("--input="):
+            inputs.append(x.split("=", 1)[1])
+        k += 1
+    if method is not None and method.upper() == "GET":
+        return
+    if method is None and not fields and not inputs:
+        return
+    text = {}
+    for flag, v in fields:
+        if not v.startswith("body="):
+            continue
+        v = v[5:]
+        if flag in ("-F", "--field") and v.startswith("@") and v != "@-":   # gh reads the value from a file
+            try:
+                v = open(where(d, v[1:]), encoding="utf-8", errors="replace").read()
+            except OSError:
+                continue
+        text["reply body" + (" %d" % (len(text) + 1) if text else "")] = v
+    for f in inputs:
+        if f != "-":
+            try:
+                text["reply input file " + f] = open(where(d, f), encoding="utf-8", errors="replace").read()
+            except OSError:
+                pass
+    # the pull request the path names (pulls/comments/<id> and issues/comments/<id> name none), a delete (the
+    # undo of a reply), and a review that approves or requests changes
+    m = re.search(r"(?:pulls|issues)/(\d+)(?:/|\s|$)", " ".join(a))
+    flag = "-"
+    event = " ".join([v for _, v in fields if v.startswith("event=")] + [t for k, t in text.items() if "input file" in k])
+    if method is not None and method.upper() == "DELETE":
+        flag = "delete"
+    elif re.search(r"\bAPPROVE\b", event):
+        flag = "approve"
+    elif re.search(r"\bREQUEST_CHANGES\b", event):
+        flag = "request-changes"
+    out.append(("reply", d, flag, m.group(1) if m else "?", "-", blob64(text)))
 
 def git(a, d, out):
     j = 0
@@ -313,6 +430,68 @@ no_record="RECORD GATE: no record folder for $NAME under $RECORDS (no decision-r
 # (c) and (d) at the act: the newest gate receipt is at HEAD with 0 red lines; the jev audit is clean;
 # rules.md and gate.md match frozen.sha256, the receipt names the frozen gate.md, and the frozen spec at
 # HEAD still freezes with the same rows (shared/frozen.py check; a legacy record folder is not checked).
+# The newest entry's verdict: the audit proves a receipt backs the jev line, this reads what it says.
+# Once per command, for a push, a pull request and a comment or reply post alike. $1: the act's verb.
+verdict_seen=""
+verdict_gate(){
+  local bad
+  [ -z "$verdict_seen" ] || return 0
+  verdict_seen=1
+  bad="$(python3 - "$rec/decision-record.md" "$(dirname "$0")" <<'PY'
+import sys
+sys.path.insert(0, sys.argv[2])
+import dr_check
+entries = dr_check.read_entries(open(sys.argv[1], encoding="utf-8").read().split("\n"))
+v = entries[-1].fields.get("jev", "") if entries else ""
+if v.startswith(("stop and ask", "rework")):
+    print(f"{entries[-1].id}\t{v}")
+PY
+)"
+  [ -z "$bad" ] ||
+    add "JEV VERDICT GATE: the newest entry in $rec/decision-record.md (${bad%%$'\t'*}) has jev \"${bad#*$'\t'}\". A stop and ask is the owner's word first: ask in the pane, write the next entry with an \`owner\` line quoting the word, ${1:-push} once its jev line says continue. A rework is do not act: write the next entry with a different \`decided\`."
+}
+# REPLY ENTRY GATE: the newest entry is the entry for THIS post. Its `decided` line (a UAT entry: `done`)
+# opens `reply in thread <id> on PR #<n>` or `post a comment on PR #<n>` (foundations/pr-comments.md), <n>
+# is the pull request the command names ($1; "?" when it names none: a bare `gh pr comment`, a path with
+# only a comment id), and no post was let through under it before (<record>/replies-posted.log, one line
+# per post this hook allowed). So a continue on an entry about something else, or about another pull
+# request, lets no post through, and one entry lets one post through. Not proved: that the text posted is
+# the text the entry describes; lead-1's second REVIEW entry reads the two side by side.
+replies=0; reply_mark=""
+reply_entry_gate(){
+  local out
+  replies=$((replies+1))
+  if [ "$replies" -gt 1 ]; then
+    add "REPLY ENTRY GATE: this command posts more than one comment or reply. One entry per post, each written first: post them one command at a time."
+    return 0
+  fi
+  out="$(python3 - "$rec/decision-record.md" "$(dirname "$0")" "$1" "$rec/replies-posted.log" <<'PY'
+import os, re, sys
+sys.path.insert(0, sys.argv[2])
+import dr_check
+entries = dr_check.read_entries(open(sys.argv[1], encoding="utf-8").read().split("\n"))
+if not entries:
+    print("bad\tthere is no entry yet"); sys.exit()
+e = entries[-1]
+said = e.fields.get("done", "") if "words" in e.fields else e.fields.get("decided", "")
+m = re.match(r"^(?:reply in thread \S+ on PR #(\d+)|post a comment on PR #(\d+))(?!\d)", said)
+if not m:
+    print(f"bad\tthe newest entry ({e.id}) is not the entry for this post: its line reads \"{said[:80]}\""); sys.exit()
+n = m.group(1) or m.group(2)
+if sys.argv[3] not in ("?", "-", n):
+    print(f"bad\tthe newest entry ({e.id}) is for PR #{n}, and this command posts on #{sys.argv[3]}"); sys.exit()
+used = [l.split("\t") for l in open(sys.argv[4], encoding="utf-8").read().split("\n")] if os.path.exists(sys.argv[4]) else []
+hit = next((u for u in used if u[0] == e.id), None)
+if hit:
+    print(f"bad\tthe newest entry ({e.id}) already let a post through at {hit[1] if len(hit) > 1 else '?'}"); sys.exit()
+print(f"ok\t{e.id}\tPR #{n}")
+PY
+)"
+  case "$out" in
+    ok$'\t'*) reply_mark="${out#ok$'\t'}" ;;
+    *) add "REPLY ENTRY GATE: ${out#bad$'\t'}. One entry per post, written before it with record-add.sh: \`decided  reply in thread <id> on PR #<n>: <the reply in one line>\`, or \`decided  post a comment on PR #<n>: <the comment in one line>\`, <n> the pull request this command names. Post once its jev line says continue; a second post, or a post that failed, takes a new entry." ;;
+  esac
+}
 checked=" "
 gate_checks(){
   local d="$1" rcpt rhead chead red bad
@@ -336,19 +515,7 @@ gate_checks(){
   fi
   bad="$(python3 "$(dirname "$0")/dr_check.py" "$rec/decision-record.md" --audit 2>&1)" ||
     add "JEV RECEIPT GATE: $(printf '%s' "$bad" | tr '\n' ' ')A jev line is written only by the Jev check (the dr-check hook, or shared/records/record-add.sh); a receipt made with JEV_STUB, another JEV_URL or DR_STANDING set does not count. An entry with no jev line: run python3 $FLEET_REPO/shared/hooks/dr_check.py $rec/decision-record.md --worktree <worktree> from the worktree, with none of those set; it checks every entry with none. Any other line: tell lead-1; never move or edit a line by hand. Then push."
-  # the newest entry's verdict: the audit proves a receipt backs the jev line, this reads what it says
-  bad="$(python3 - "$rec/decision-record.md" "$(dirname "$0")" <<'PY'
-import sys
-sys.path.insert(0, sys.argv[2])
-import dr_check
-entries = dr_check.read_entries(open(sys.argv[1], encoding="utf-8").read().split("\n"))
-v = entries[-1].fields.get("jev", "") if entries else ""
-if v.startswith(("stop and ask", "rework")):
-    print(f"{entries[-1].id}\t{v}")
-PY
-)"
-  [ -z "$bad" ] ||
-    add "JEV VERDICT GATE: the newest entry in $rec/decision-record.md (${bad%%$'\t'*}) has jev \"${bad#*$'\t'}\". A stop and ask is the owner's word first: ask in the pane, write the next entry with an \`owner\` line quoting the word, push once its jev line says continue. A rework is do not act: write the next entry with a different \`decided\`."
+  verdict_gate push
   bad="$(python3 "$(dirname "$0")/../frozen.py" check "$rec" ${rcpt:+--receipt "$rcpt"} --worktree "$d" 2>/dev/null)" ||
     add "FROZEN GATE: $(printf '%s' "$bad" | sed 's/$/;/' | tr '\n' ' ')Nothing is pushed and no pull request is opened while a frozen file or the spec has moved. A frozen rule or gate line changes only through a card to lead-1; a drifted spec is restored to the frozen rows, committed, gated again."
 }
@@ -390,8 +557,8 @@ $(git -C "$d" show "HEAD:$f" 2>/dev/null | python3 "$(dirname "$0")/leak_check.p
   hits="$(printf '%s\n' "$hits" | sed '/^$/d')"
   leak_report "$hits" "the commits this act sends (${mb:0:7}..HEAD) add lines or carry messages that"
 }
-pr_text_gate(){  # $1 base64 of a JSON {label: text}: the pull request's title and body
-  local hits
+pr_text_gate(){  # $1 base64 of a JSON {label: text}: the pull request's title and body, or a reply's text; $2 what holds it
+  local hits what
   [ "$1" = "-" ] && return 0
   hits="$(python3 -c '
 import base64, json, sys
@@ -401,7 +568,8 @@ for label, text in json.loads(base64.b64decode(sys.argv[1])).items():
     for n, pat, line in leak_check.check_text(text):
         print("%s:%d: %s: %s" % (label, n, pat, line))
 ' "$1" "$(dirname "$0")" 2>/dev/null)"
-  leak_report "$hits" "the pull request's title or body, read on GitHub too,"
+  what="the pull request's title or body, read on GitHub too,"; [ -n "${2:-}" ] && what="$2"
+  leak_report "$hits" "$what"
 }
 protected(){  # $1 branch, $2 dir: main, master or the remote's default branch
   local def
@@ -490,6 +658,19 @@ while IFS=$'\t' read -r kind d flags branches sources prtext; do
     merge)
       add "MERGE GATE: gh pr merge is the owner's act; the IC never merges. Report the pull request to lead-1 and stop."
       ;;
+    reply)
+      # REPLY GATE: a comment or reply post. A record, the newest entry's verdict, the text. No receipt,
+      # no audit: a reply moves no code. The hook does not prove the PR is the rung's own (header).
+      if [ -z "$rec" ]; then add "$no_record A comment or reply on a pull request is not posted without it either."; continue; fi
+      case "$flags" in approve|request-changes)
+        what="approves"; [ "$flags" = "approve" ] || what="requests changes"
+        add "REVIEW GATE: this review $what. An IC never approves a pull request or requests changes on one: that is a reviewer's verdict, and the owner's word. Post a comment or a reply (gh pr review --comment, gh pr comment, a reply in the thread)."
+        continue ;;
+      esac
+      verdict_gate post
+      [ "$flags" = "delete" ] || reply_entry_gate "$branches"
+      pr_text_gate "${prtext:--}" "the comment or reply, which the team reads on GitHub,"
+      ;;
     ready)
       if [ -z "$rec" ]; then add "$no_record"; continue; fi
       last="$(awk '/^[^ ].* DR[0-9]+ ·/{id=$0; inE=1; has=0; next} inE && /^  owner +"/{has=1} inE && !/^  /{inE=0} END{if (id!="") print has "\t" id}' "$rec/decision-record.md")"
@@ -499,6 +680,10 @@ while IFS=$'\t' read -r kind d flags branches sources prtext; do
       ;;
   esac
 done <<< "$acts"
+# an allowed post uses its entry up: one line in <record>/replies-posted.log, read by the REPLY ENTRY GATE
+if [ -z "$reason" ] && [ -n "$reply_mark" ]; then
+  printf '%s\t%s\t%s\n' "${reply_mark%%$'\t'*}" "$(date '+%Y-%m-%d %H:%M:%S')" "${reply_mark#*$'\t'}" >> "$rec/replies-posted.log" 2>/dev/null
+fi
 [ -n "$reason" ] || exit 0
 jq -n --arg r "$reason" '{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"deny",permissionDecisionReason:$r}}'
 exit 0

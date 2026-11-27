@@ -60,6 +60,10 @@ gather ──▶ paste into prompt ──▶ haiku replies JSON ──▶ save <
    It marks a row whose text an earlier row already has, and names the
    record folders with no close report. It reads screen one of
    `close.md` only, never a `sources/` folder or another record file.
+   A record folder named `pr-<n>-review` holds a team PR's close,
+   written by the repo's reviewer (`reviewing-a-team-pr`); the gatherer
+   prints it like any close, in folder-name order (`pr-9-review` before
+   `pr-12-review`), with references `pr-<n>-review · <SECTION> · row <n>`.
    Exit 2 is a wrong project name: the reason lists the projects there.
    The single line `none: no close report for <project>` needs no
    haiku: save `{"none": "<reason>"}` and go to step 4.
@@ -102,6 +106,8 @@ gather ──▶ paste into prompt ──▶ haiku replies JSON ──▶ save <
      `one-way` a `one-way` bullet, `open` an `open` item. The brief item
      carries its own link, `[precedent: <record> close.md <SECTION> <n>; <status>]`,
      for example `constraints 4  [precedent: atl-40-r1 close.md LEARNED 3; live]`.
+     A row from a team PR's close takes the same form,
+     `[precedent: pr-12-review close.md LEARNED 1; live]`.
    - **A dropped row** moves to `not_carried`, one entry per reference,
      with the reason in one line. Renumber the kept rows P1..Pn.
    - **An owner ruling** a row quotes stays in `owner_quote`, verbatim;

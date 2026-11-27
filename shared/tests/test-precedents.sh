@@ -263,5 +263,129 @@ else
   echo "skip  agree: no jsonschema in uv's offline cache"
 fi
 
+# a team PR's close, written by a repo's reviewer (skills/reviewing-a-team-pr) in a pr-<n>-review folder: the
+# gatherer and the check read it with no change. A new project, comet, so the atlas counts above stay as they are.
+K="$ROOT/comet"; mkdir -p "$K/cmt-7-r1" "$K/pr-9-review" "$K/pr-12-review" "$K/pr-13-review" "$K/cmt-8-r1"
+cat > "$K/cmt-7-r1/close.md" <<'EOC'
+close · comet-ic · CMT-7 rung 1 · dedupe the event feed · 2026-10-02 09:30 · merged 1a2b3c4
+
+Verdict: ✔ shipped as designed. Reply `CMT-7 close ok` or `CMT-7 close back: <line>`.
+
+CHANGED, decisions taken after the handoff (from decision-record.md)
+
+  | ID        | QUESTION           | DECIDED          | CONSEQUENCE IN THE CODE | BY, REVIEW   |
+  |-----------|--------------------|------------------|-------------------------|--------------|
+  | CMT-7 DR1 | what the key holds | the event id     | dedupe.py keys on id    | comet-ic, ok |
+
+LEARNED, what bites the next rung
+
+  | KIND      | FACT                                  | EVIDENCE       |
+  |-----------|---------------------------------------|----------------|
+  | went well | the feed replays cleanly from the log | replay.py test |
+
+OWED, what this rung leaves behind
+
+  none
+
+---
+## Appendix
+EOC
+cat > "$K/pr-9-review/close.md" <<'EOC'
+close · comet-reviewer · comet PR #9 · batch the feed writes · 2026-10-05 14:10 · merged 5d6e7f8
+
+CHANGED, what the review changed
+
+  none
+
+LEARNED, what bites the next rung
+
+  | KIND      | FACT                                          | EVIDENCE            |
+  |-----------|-----------------------------------------------|---------------------|
+  | went well | the batch size is read from config, with a test | tests/test_batch.py |
+
+OWED, what this PR leaves behind
+
+  | ITEM                         | OWNER  | STATE     |
+  |------------------------------|--------|-----------|
+  | a metric for the batch flush | author | not filed |
+
+---
+## Appendix
+
+```
+pull request  https://github.com/acme/comet/pull/9
+report        $FLEET_HOME/checks/comet-reviewer/pr-9.md
+```
+EOC
+cat > "$K/pr-12-review/close.md" <<'EOC'
+close · comet-reviewer · comet PR #12 · cap the feed queue · 2026-10-09 11:20 · merged 4b8d1e7
+
+CHANGED, what the review changed
+
+  | ID       | QUESTION                           | DECIDED                         | CONSEQUENCE IN THE CODE         | BY, REVIEW             |
+  |----------|------------------------------------|---------------------------------|---------------------------------|------------------------|
+  | PR 12 F1 | what happens to a job past the cap | logged and alerted, not dropped | queue.py line 48 sends an alert | author, commit 9a3c5d2 |
+
+LEARNED, what bites the next rung
+
+  | KIND              | FACT                                           | EVIDENCE                         |
+  |-------------------|------------------------------------------------|----------------------------------|
+  | went wrong        | a full queue dropped the job silently          | queue.py line 48 at head 71c0e2f |
+  | missing guardrail | no test fills the queue, so the drop passed CI | tests/test_queue.py, no cap case |
+
+OWED, what this PR leaves behind
+
+  none
+
+---
+## Appendix
+
+```
+pull request  https://github.com/acme/comet/pull/12
+SHOULD-NOT-BE-READ-APPENDIX
+```
+EOC
+printf 'review · comet-reviewer · comet PR #13 · REPORT-ONLY-TEXT\n\nLEARNED, what bites the next rung\n\n  | KIND | FACT | EVIDENCE |\n  | went wrong | REPORT-ONLY-ROW | x |\n' > "$K/pr-13-review/pr-13.md"
+"$G" --root "$ROOT" comet > "$T/comet.txt" 2>&1; rc=$?
+check "review-close: gather prints the PR closes" "$rc:$(head -1 "$T/comet.txt"):$(grep '^== ' "$T/comet.txt" | cut -d' ' -f2 | tr '\n' ' ')" "0:precedents · comet · 3 close reports · $K:cmt-7-r1 pr-9-review pr-12-review "
+check "review-close: title line read" "$(grep '^== pr-12-review ' "$T/comet.txt")" "== pr-12-review · close · comet-reviewer · comet PR #12 · cap the feed queue · 2026-10-09 11:20 · merged 4b8d1e7"
+check "review-close: CHANGED, LEARNED, OWED rows referenced" "$(grep -e '^  pr-12-review · CHANGED · row 1 ' -e '^  pr-12-review · LEARNED · row 1 ' "$T/comet.txt"; sed -n '/^== pr-12-review/,/^$/p' "$T/comet.txt" | grep '^OWED')" \
+  "$(printf '%s\n%s\n%s' "  pr-12-review · CHANGED · row 1   PR 12 F1 | what happens to a job past the cap | logged and alerted, not dropped | queue.py line 48 sends an alert | author, commit 9a3c5d2" \
+  "  pr-12-review · LEARNED · row 1   went wrong | a full queue dropped the job silently | queue.py line 48 at head 71c0e2f" "OWED      none")"
+check "review-close: the column names are the rung close's" "$(sed -n '/^== pr-12-review/,/^$/p' "$T/comet.txt" | grep -c -x -e 'CHANGED   ID | QUESTION | DECIDED | CONSEQUENCE IN THE CODE | BY, REVIEW' -e 'LEARNED   KIND | FACT | EVIDENCE')" 2
+check "review-close: an empty CHANGED prints none, the appendix is not read" "$(sed -n '/^== pr-9-review/,/^$/p' "$T/comet.txt" | grep '^CHANGED'):$(grep -c -e SHOULD-NOT-BE-READ -e 'pull request' "$T/comet.txt")" "CHANGED   none:0"
+check "review-close: a pr-review folder with no close.md is named once" "$(tail -1 "$T/comet.txt"):$(grep -c 'pr-13-review' "$T/comet.txt"):$(grep -c 'REPORT-ONLY' "$T/comet.txt")" "no close.md   cmt-8-r1, pr-13-review:1:0"
+# the skill's own template, comment lines stripped, in a pr-91-review folder of its own project
+RT="$HERE/skills/reviewing-a-team-pr/templates/review-close.md"; mkdir -p "$ROOT/dune/pr-91-review"
+grep -v '^# ' "$RT" > "$ROOT/dune/pr-91-review/close.md"
+"$G" --root "$ROOT" dune > "$T/dune.txt" 2>&1
+check "review-close: the template's own close gathers" "$(grep -c '^== pr-91-review · close · atlas-reviewer · atlas PR #91 · ' "$T/dune.txt"):$(grep -c -E '^  pr-91-review · (CHANGED|LEARNED|OWED) · row 1 ' "$T/dune.txt"):$(grep -c 'none: no .* section' "$T/dune.txt")" "1:3:0"
+check "review-close: the template's screen one holds the three sections only" "$(grep -v '^# ' "$RT" | awk '/^---$/{exit} /^[A-Za-z]/{print $1}' | tr '\n' ' ')" "close CHANGED, LEARNED, OWED, "
+check "review-close: the template's titles are the ones the skill names" "$(grep -c -x -e 'CHANGED, what the review changed' -e 'LEARNED, what bites the next rung' -e 'OWED, what this PR leaves behind' "$RT")" 3
+# a sweep on the next comet rung cites PR rows like any other
+cat > "$J/pr-good.json" <<'EOC'
+{
+  "project": "comet",
+  "rows_read": 7,
+  "records": ["cmt-7-r1", "pr-9-review", "pr-12-review"],
+  "rows": [
+    {"id": "P1", "rule": "A queue at its cap logs and alerts; it never drops a job silently.",
+     "sources": ["pr-12-review · LEARNED · row 1", "pr-12-review · CHANGED · row 1"],
+     "fits": "constraint", "why": "the new rung adds a second queue", "status": "live"},
+    {"id": "P2", "rule": "A cap has a test that fills the queue.", "sources": ["pr-12-review · LEARNED · row 2"],
+     "fits": "gate pass line", "why": "the new queue has a cap", "status": "live"}
+  ],
+  "not_carried": [
+    {"reference": "cmt-7-r1 · CHANGED · row 1", "reason": "the dedupe key is built"},
+    {"reference": "cmt-7-r1 · LEARNED · row 1", "reason": "went well; nothing to change"},
+    {"reference": "pr-9-review · LEARNED · row 1", "reason": "went well; nothing to change"},
+    {"reference": "pr-9-review · OWED · row 1", "reason": "the metric is the author's, not this rung"}
+  ]
+}
+EOC
+check "review-close: precedents-check passes a sweep citing PR rows" "$(sw pr-good "$K/cmt-8-r1")" "$(printf '%s\n%s' "precedents-check: pass · comet · 7 rows read · 2 carried, 4 not carried" rc=0)"
+jq '.rows[0].sources[0]="pr-12 · LEARNED · row 1"' "$J/pr-good.json" > "$J/pr-respelt.json"
+check "review-close: a PR reference not spelt as printed fails" "$(sw pr-respelt "$K/cmt-8-r1" | grep -c -x 'pr-12 · LEARNED · row 1: the gatherer did not print it'):$(sw pr-respelt "$K/cmt-8-r1" | tail -1)" "1:rc=1"
+
 echo "$pass pass, $fail fail"
 [ "$fail" -eq 0 ]
